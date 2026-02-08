@@ -292,92 +292,140 @@ const LS={
   s:(k,v)=>{try{localStorage.setItem('bp3_'+k,JSON.stringify(v))}catch{}},
 };
 
-// Schedule Generator
+// Schedule Generator — date-based phases
+const PH1_END='2026-03-31',PH2_END='2026-06-30';
+function gPh(date){if(date<=PH1_END)return 1;if(date<=PH2_END)return 2;return 3}
+
 function genSch(start,blocked=[],initIx={}){
   const s={};const dday=diffD(start,EXAM);const tw=Math.floor(dday/7);
-  // Phase 1: 이론완성+단권화 (2~3월, ~32%)
-  // Phase 2: 실전GS+답안작성 (4~6월, ~84%)
-  // Phase 3: 압축회독+시뮬레이션 (7월)
-  const p1=Math.floor(tw*0.32),p2=Math.floor(tw*0.84);
   let ix={pb:initIx.pb||0,pa:initIx.pa||0,pw:initIx.pw||0,ce:initIx.ce||0};
+  let rc=0; // 회독 순환 카운터
+  const RTOP=['특허요건·진보성','침해·균등론·간접침해','심판·정정·일사부재리','소송·권리범위·PCT'];
 
-  for(let w=0;w<tw&&w<60;w++){
-    for(let d=0;d<7;d++){
-      const date=addD(start,w*7+d);
-      if(new Date(date)>new Date(EXAM))break;
-      if(blocked.includes(date))continue;
-      const dow=new Date(date).getDay();
-      const it=[];
+  for(let w=0;w<tw&&w<60;w++){for(let d=0;d<7;d++){
+    const date=addD(start,w*7+d);
+    if(new Date(date)>new Date(EXAM))break;
+    if(blocked.includes(date))continue;
+    const dow=new Date(date).getDay(),ph=gPh(date),it=[];
 
-      if(dow===0){
-        it.push({time:'09:00',dur:90,tp:'review',t:'📖 주간 종합 복습 - 특허법 (단권화)',md:'output',sj:'patent'});
+    if(dow===0){ // ===== SUNDAY =====
+      if(ph===1){
+        it.push({time:'09:00',dur:90,tp:'review',t:'📖 주간 단권화 정리 (형광펜 복습)',md:'output',sj:'patent'});
         it.push({time:'10:30',dur:20,tp:'rest',t:'☕ 휴식'});
-        it.push({time:'10:50',dur:60,tp:'review',t:'⚙️ 주간 복습 - 제어공학 기출유형',md:'output',sj:'control'});
-        it.push({time:'11:50',dur:70,tp:'rest',t:'🍚 점심 + 휴식'});
-        it.push({time:'13:00',dur:50,tp:'exercise',t:'🏃 운동/산책'});
-        it.push({time:'14:00',dur:120,tp:'exam',t:'📝 기출 시간제한 풀이 (2h 시뮬)',md:'output',sj:'patent'});
-        it.push({time:'16:00',dur:30,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output',sj:'patent'});
-        it.push({time:'16:30',dur:30,tp:'rest',t:'🎵 자유시간'});
+        it.push({time:'10:50',dur:60,tp:'review',t:'⚙️ 제어공학 주간 복습',md:'output',sj:'control'});
       } else {
-        it.push({time:'06:30',dur:30,tp:'rest',t:'🌅 기상 + 준비'});
-        // Phase 1 (2~3월): 이론완성 + 단권화
-        if(w<p1){
-          it.push({time:'07:00',dur:20,tp:'patent',t:'📕 법전 조문 찾기 훈련 (5~10초)',md:'input',sj:'patent'});
-          const l=PB[Math.min(ix.pb,29)];
+        it.push({time:'09:00',dur:120,tp:'exam',t:ph===2?'📝 기출 시간제한 풀이 (2h 시뮬)':'📝 실전 모의시험 (2h 완전시뮬)',md:'output',sj:'patent'});
+        it.push({time:'11:00',dur:30,tp:'review',t:'[분석] 채점+사안포섭 분석',md:'output',sj:'patent'});
+        it.push({time:'11:30',dur:30,tp:'rest',t:'☕ 휴식'});
+      }
+      it.push({time:'12:00',dur:60,tp:'rest',t:'🍚 점심 + 휴식'});
+      it.push({time:'13:00',dur:50,tp:'exercise',t:'🏃 운동/산책'});
+      it.push({time:'13:50',dur:10,tp:'rest',t:'🚿 정리'});
+      if(ph>=2){
+        it.push({time:'14:00',dur:90,tp:'review',t:'📖 회독: 취약 파트 집중 복습',md:'output',sj:'patent'});
+        it.push({time:'15:30',dur:60,tp:'review',t:'⚙️ 제어공학 기출유형 복습',md:'output',sj:'control'});
+      } else {
+        it.push({time:'14:00',dur:60,tp:'review',t:'📖 이번 주 학습 총복습',md:'output',sj:'patent'});
+      }
+      it.push({time:'16:30',dur:30,tp:'rest',t:'🎵 자유시간'});
+    } else { // ===== WEEKDAY + SAT =====
+      it.push({time:'06:30',dur:30,tp:'rest',t:'🌅 기상 + 준비'});
+
+      // ── MORNING: Patent ──
+      if(ph===1){ // ~3월: 기본이론 완강 + 단권화 1차 완성
+        it.push({time:'07:00',dur:20,tp:'patent',t:'📕 법전 조문 찾기 훈련 (5~10초)',md:'input',sj:'patent'});
+        if(ix.pb<30){
+          const l=PB[ix.pb];
           it.push({time:'07:20',dur:80,tp:'patent',t:`[입력] 기본 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pb'});
           it.push({time:'08:40',dur:10,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:50',dur:40,tp:'output',t:`[출력] 기본 ${l.n}강 단권화+기억확인`,md:'output',sj:'patent'});
-        }
-        // Phase 2 (4~6월): GS실전 + 답안작성 체화
-        else if(w<p2){
+          it.push({time:'08:50',dur:40,tp:'output',t:`[출력] 기본 ${l.n}강 단권화 (형광펜+요약)`,md:'output',sj:'patent'});
+        } else {
           const l=PA[Math.min(ix.pa,33)];
-          it.push({time:'07:00',dur:90,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
+          it.push({time:'07:20',dur:80,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
+          it.push({time:'08:40',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'08:50',dur:40,tp:'output',t:`[출력] 판례 ${l.n}강 단권화+쟁점정리`,md:'output',sj:'patent'});
+        }
+      } else if(ph===2){ // 4~6월: 기출/GS + 회독 + 판례/답작
+        const dt=dow%3;
+        if(dt===0){ // 기출/GS 풀이일
+          it.push({time:'07:00',dur:90,tp:'exam',t:'📝 기출문제/GS 풀이 (시간제한)',md:'output',sj:'patent'});
           it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'08:45',dur:45,tp:'review',t:'[분석] 채점+모범답안 비교+사안포섭',md:'output',sj:'patent'});
+        } else if(dt===1){ // 판례심화 + 답안작성
+          if(ix.pa<34){const l=PA[ix.pa];
+            it.push({time:'07:00',dur:70,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
+          } else {
+            it.push({time:'07:00',dur:70,tp:'review',t:'[회독] 판례심화 핵심쟁점 회독',md:'output',sj:'patent'});
+          }
+          it.push({time:'08:10',dur:10,tp:'rest',t:'☕ 휴식'});
           const lw=PW[Math.min(ix.pw,19)];
-          it.push({time:'08:45',dur:45,tp:'answer',t:`[출력] 답작연습: ${lw.t} (사안포섭)`,md:'output',sj:'patent',lid:lw.id,cr:'pw'});
+          it.push({time:'08:20',dur:60,tp:'answer',t:`[출력] 답작: ${lw.t} (사안포섭+16쪽)`,md:'output',sj:'patent',lid:lw.id,cr:'pw'});
+        } else { // 회독일
+          it.push({time:'07:00',dur:90,tp:'review',t:`[회독] 특허법: ${RTOP[rc%4]}`,md:'output',sj:'patent'});
+          it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'08:45',dur:45,tp:'output',t:'[출력] 회독 핵심 키워드 기억확인',md:'output',sj:'patent'});
+          rc++;
         }
-        // Phase 3 (7월): 압축회독 + 시뮬레이션
-        else {
-          it.push({time:'07:00',dur:60,tp:'review',t:'[회독] 특허법 압축회독 (8-4-2-1)',md:'output',sj:'patent'});
+      } else { // 7월: 압축회독 + 시뮬레이션
+        if(dow%2===1){
+          it.push({time:'07:00',dur:60,tp:'review',t:'[압축회독] 전범위 속독 (8-4-2-1)',md:'output',sj:'patent'});
           it.push({time:'08:00',dur:15,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:15',dur:75,tp:'exam',t:'[시뮬] 실전 모의답안 작성 (시간제한)',md:'output',sj:'patent'});
+          it.push({time:'08:15',dur:75,tp:'exam',t:'[시뮬] 실전 모의답안 (시간제한)',md:'output',sj:'patent'});
+        } else {
+          it.push({time:'07:00',dur:90,tp:'exam',t:'📝 기출 실전풀이 (2h 시뮬)',md:'output',sj:'patent'});
+          it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'08:45',dur:45,tp:'review',t:'[분석] 채점+취약점 보강',md:'output',sj:'patent'});
         }
-        it.push({time:'09:35',dur:25,tp:'rest',t:'☕ 휴식 + 간식'});
-        // Mid: Control
+      }
+      it.push({time:'09:35',dur:25,tp:'rest',t:'☕ 휴식 + 간식'});
+
+      // ── MID: Control ──
+      if(ix.ce>=20){
+        it.push({time:'10:00',dur:90,tp:'control',t:'[복습] 제어공학 기출유형 반복',md:'output',sj:'control'});
+      } else {
         const cl=CE[Math.min(ix.ce,19)];
         it.push({time:'10:00',dur:90,tp:'control',t:`[입력] 제어 ${cl.n}강: ${cl.t}`,md:'input',sj:'control',lid:cl.id,cr:'ce'});
-        it.push({time:'11:30',dur:15,tp:'rest',t:'🧘 휴식'});
-        it.push({time:'11:45',dur:45,tp:'output',t:'[출력] 제어공학 문제풀이',md:'output',sj:'control'});
-        it.push({time:'12:30',dur:60,tp:'rest',t:'🍚 점심식사'});
-        it.push({time:'13:30',dur:30,tp:'rest',t:'😴 낮잠'});
-        it.push({time:'14:00',dur:40,tp:'exercise',t:'🏃 운동 (유산소/근력)'});
-        it.push({time:'14:40',dur:20,tp:'rest',t:'🚿 정리'});
-        it.push({time:'15:00',dur:80,tp:'review',t:'[복습] 특허법 간격반복',md:'output',sj:'patent'});
-        it.push({time:'16:20',dur:20,tp:'rest',t:'☕ 휴식'});
-        it.push({time:'16:40',dur:80,tp:'review',t:'[복습] 제어공학 간격반복',md:'output',sj:'control'});
-        it.push({time:'18:00',dur:60,tp:'rest',t:'🍚 저녁식사'});
-        it.push({time:'19:00',dur:30,tp:'rest',t:'🎵 자유시간'});
-        if(dow===6){
-          it.push({time:'19:30',dur:120,tp:'exam',t:'📝 모의시험 실전연습 (2시간 시뮬)',md:'output',sj:'patent'});
-          it.push({time:'21:30',dur:30,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output'});
-        } else if(w>=p1){
-          it.push({time:'19:30',dur:80,tp:'exam',t:`📝 기출분석 (${dow%2===0?'특허법':'제어공학'})`,md:'output',sj:dow%2===0?'patent':'control'});
-          it.push({time:'20:50',dur:10,tp:'rest',t:'☕'});
-          it.push({time:'21:00',dur:30,tp:'review',t:'[정리] 오늘 총정리+단권화',md:'output'});
-        } else {
-          it.push({time:'19:30',dur:60,tp:'review',t:'[정리] 형광펜 단권화+내일준비',md:'output'});
-        }
-        it.push({time:'22:00',dur:30,tp:'rest',t:'🌙 취침준비'});
-        // Advance lecture indices
-        if(dow===1||dow===3||dow===5){
-          if(w<p1)ix.pb=Math.min(ix.pb+1,30);
-          else if(w<p2){ix.pa=Math.min(ix.pa+1,34);if(dow===3||dow===5)ix.pw=Math.min(ix.pw+1,20)}
-        }
-        if(dow===2||dow===4)ix.ce=Math.min(ix.ce+1,20);
       }
-      s[date]=it;
+      it.push({time:'11:30',dur:15,tp:'rest',t:'🧘 휴식'});
+      it.push({time:'11:45',dur:45,tp:'output',t:'[출력] 제어공학 문제풀이+계산기',md:'output',sj:'control'});
+      it.push({time:'12:30',dur:60,tp:'rest',t:'🍚 점심식사'});
+      it.push({time:'13:30',dur:30,tp:'rest',t:'😴 낮잠'});
+      it.push({time:'14:00',dur:40,tp:'exercise',t:'🏃 운동 (유산소/근력)'});
+      it.push({time:'14:40',dur:20,tp:'rest',t:'🚿 정리'});
+
+      // ── AFTERNOON: Review ──
+      it.push({time:'15:00',dur:80,tp:'review',t:'[복습] 특허법 간격반복',md:'output',sj:'patent'});
+      it.push({time:'16:20',dur:20,tp:'rest',t:'☕ 휴식'});
+      it.push({time:'16:40',dur:80,tp:'review',t:'[복습] 제어공학 간격반복',md:'output',sj:'control'});
+      it.push({time:'18:00',dur:60,tp:'rest',t:'🍚 저녁식사'});
+      it.push({time:'19:00',dur:30,tp:'rest',t:'🎵 자유시간'});
+
+      // ── EVENING ──
+      if(dow===6){
+        it.push({time:'19:30',dur:120,tp:'exam',t:'📝 토요 모의시험 (2h 실전시뮬)',md:'output',sj:'patent'});
+        it.push({time:'21:30',dur:30,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output'});
+      } else if(ph===1){
+        it.push({time:'19:30',dur:60,tp:'review',t:'[정리] 단권화 최종정리+내일준비',md:'output',sj:'patent'});
+      } else if(ph===2){
+        it.push({time:'19:30',dur:80,tp:'exam',t:`📝 기출분석 (${dow%2===0?'특허법':'제어공학'})`,md:'output',sj:dow%2===0?'patent':'control'});
+        it.push({time:'20:50',dur:10,tp:'rest',t:'☕'});
+        it.push({time:'21:00',dur:30,tp:'review',t:'[정리] 오늘 총정리+회독메모',md:'output'});
+      } else {
+        it.push({time:'19:30',dur:80,tp:'review',t:'[압축회독] 취약파트 집중보강',md:'output',sj:'patent'});
+        it.push({time:'20:50',dur:10,tp:'rest',t:'☕'});
+        it.push({time:'21:00',dur:30,tp:'review',t:'[정리] 내일 시뮬 범위 확인',md:'output'});
+      }
+      it.push({time:'22:00',dur:30,tp:'rest',t:'🌙 취침준비'});
+
+      // ── Advance indices ──
+      if(dow===1||dow===3||dow===5){
+        if(ph===1){if(ix.pb<30)ix.pb++;else ix.pa=Math.min(ix.pa+1,34)}
+        else if(ph===2&&dow%3===1){ix.pa=Math.min(ix.pa+1,34);if(dow>=3)ix.pw=Math.min(ix.pw+1,20)}
+      }
+      if(dow===2||dow===4)ix.ce=Math.min(ix.ce+1,20);
     }
-  }
+    s[date]=it;
+  }}
   return s;
 }
 
@@ -530,11 +578,12 @@ function App(){
 
   const pi=useMemo(()=>{
     const dd=gDD(),tot=diffD('2026-02-07',EXAM),el=tot-dd;
-    const p1=Math.floor(tot*.32),p2=Math.floor(tot*.84);
-    let ph,lb,co;
-    if(el<p1){ph=1;lb='1단계: 이론완성+단권화 (2~3월)';co='var(--blu)'}
-    else if(el<p2){ph=2;lb='2단계: 실전GS+답안작성 (4~6월)';co='var(--ylw)'}
-    else{ph=3;lb='3단계: 압축회독+시뮬 (7월)';co='var(--red)'}
+    const ph=gPh(td());
+    const pct=Math.round(el/tot*100);
+    let lb,co;
+    if(ph===1){lb='1단계: 이론완성+단권화 (~3월)';co='var(--blu)'}
+    else if(ph===2){lb='2단계: 기출/GS+회독 (4~6월)';co='var(--ylw)'}
+    else{lb='3단계: 압축회독+시뮬 (7월)';co='var(--red)'}
     return{ph,lb,co,pct:Math.round(el/tot*100)};
   },[]);
 
@@ -605,7 +654,7 @@ function App(){
           <span style={{fontWeight:600,color:pi.co}}>{pi.lb}</span><span style={{color:'var(--t3)'}}>{pi.pct}%</span>
         </div>
         <div className="pb" style={{height:6}}><div className="pf" style={{width:`${pi.pct}%`,background:'linear-gradient(90deg,var(--blu),var(--ylw),var(--red))'}}></div></div>
-        <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'var(--t3)',marginTop:3}}><span>이론(~3월)</span><span>GS실전(4~6월)</span><span>회독(7월)</span></div>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'var(--t3)',marginTop:3}}><span>단권화(~3월)</span><span>기출/GS/회독(4~6월)</span><span>압축(7월)</span></div>
       </div>
       <div className="c"><div className="ct">📚 과목별 진도</div>
         {CRS.map(c=>{const n=(cp[c.k]||[]).length;const pct=Math.round(n/c.tot*100);
@@ -906,9 +955,9 @@ function App(){
         <p>• 2일차 8.1(토): 제어공학 13:30~15:30</p>
         <p>• 합격: 특허법 60점↑, 제어공학 50점↑(P/F)</p>
         <p style={{marginTop:6}}><b style={{color:'var(--acc2)'}}>3단계 로드맵:</b></p>
-        <p>• 1단계(2~3월): 기본이론 30강 + 단권화 + 법전훈련</p>
-        <p>• 2단계(4~6월): 판례심화 34강 + 답안작성 GS + 기출</p>
-        <p>• 3단계(7월): 압축회독(8-4-2-1) + 시뮬레이션</p>
+        <p>• 1단계(~3월): 기본이론 30강 완강 + 단권화 1차 완성 + 법전훈련</p>
+        <p>• 2단계(4~6월): 기출/GS 풀이 + 회독(3일 순환: 기출→판례+답작→회독)</p>
+        <p>• 3단계(7월): 압축회독(8-4-2-1) + 실전 시뮬레이션</p>
         <p style={{marginTop:6}}><b style={{color:'var(--ylw)'}}>주간 목표: 특허법 23.3시간+</b></p>
         <p style={{marginTop:6}}><b style={{color:'var(--grn)'}}>답안작성 테크닉:</b></p>
         <p>• 목차는 '논점'으로 간결하게 (2~3줄)</p>
