@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>변리사 2차 학습 플래너</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0b0d11;--bg2:#12151c;--bg3:#1a1e2a;--bg4:#222738;--bdr:#2a3045;
+--t1:#eaedf5;--t2:#9298b0;--t3:#5c6280;
+--acc:#7c6cf0;--acc2:#a599ff;--accg:rgba(124,108,240,.25);
+--grn:#2dd4a8;--grn2:rgba(45,212,168,.12);
+--ylw:#f0c040;--ylw2:rgba(240,192,64,.12);
+--red:#ef6b5a;--red2:rgba(239,107,90,.12);
+--blu:#5ea8f0;--blu2:rgba(94,168,240,.12);
+--pnk:#e879a8;--pnk2:rgba(232,121,168,.12);
+--cyn:#40d8d0;--cyn2:rgba(64,216,208,.12);
+--patent:#7c6cf0;--control:#40d8d0;--exam:#ef6b5a;--review:#f0c040;
+--rest:#2dd4a8;--exercise:#ff7e7e;--output:#e879a8;
+--r:10px;--rs:6px;
+}
+html{font-size:14px}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+input,select,textarea,button{font-family:inherit}
+
+.app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+@media(min-width:1024px){.app{max-width:480px}}
+
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:12px 16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-i{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--acc),#a599ff);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;box-shadow:0 2px 10px var(--accg)}
+.logo h1{font-size:14px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
+.logo small{font-size:9px;color:var(--t3);font-weight:400}
+.hdr-r{display:flex;align-items:center;gap:6px}
+.dday-badge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--ylw);background:var(--ylw2);padding:3px 8px;border-radius:12px}
+.bell{position:relative;padding:4px;cursor:pointer;font-size:16px}
+.bell-n{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.tabs{display:flex;overflow-x:auto;background:var(--bg2);border-bottom:1px solid var(--bdr);padding:0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:8px 12px;font-size:11px;font-weight:500;color:var(--t3);background:none;border:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;display:flex;align-items:center;gap:4px}
+.tab:hover{color:var(--t2)}.tab.on{color:var(--acc2);border-bottom-color:var(--acc);font-weight:600}
+
+.content{flex:1;padding:12px 16px 90px;overflow-y:auto}
+
+.c{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:10px;transition:.15s}
+.c:hover{border-color:rgba(124,108,240,.2)}
+.ct{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+.pb{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}.pf{height:100%;border-radius:3px;transition:width .4s}
+
+.b{padding:7px 14px;border-radius:var(--rs);border:none;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+.bp{background:var(--acc);color:#fff}.bp:hover{background:#6b5ad9;box-shadow:0 2px 10px var(--accg)}
+.bs{background:var(--bg4);color:var(--t1);border:1px solid var(--bdr)}.bs:hover{background:var(--bdr)}
+.bsm{padding:4px 8px;font-size:10px}
+.bdg{background:var(--red2);color:var(--red)}
+.bsuc{background:var(--grn2);color:var(--grn)}
+
+.inp{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:7px 10px;color:var(--t1);font-size:12px;width:100%;transition:.15s;font-family:inherit}
+.inp:focus{outline:none;border-color:var(--acc)}
+select.inp{cursor:pointer}
+.lbl{font-size:11px;color:var(--t2);font-weight:500;margin-bottom:3px;display:block}
+
+.sb{padding:7px 10px;border-radius:var(--rs);margin-bottom:3px;font-size:11px;cursor:pointer;border-left:3px solid;transition:.12s}
+.sb:hover{transform:translateX(2px)}
+.sb.patent{background:rgba(124,108,240,.1);border-color:var(--patent)}
+.sb.control{background:var(--cyn2);border-color:var(--control)}
+.sb.exam{background:var(--red2);border-color:var(--exam)}
+.sb.review{background:var(--ylw2);border-color:var(--review)}
+.sb.rest{background:var(--grn2);border-color:var(--rest)}
+.sb.exercise{background:rgba(255,126,126,.1);border-color:var(--exercise)}
+.sb.output{background:var(--pnk2);border-color:var(--output)}
+.sb.answer{background:var(--blu2);border-color:var(--blu)}
+
+.chk{display:flex;align-items:flex-start;gap:7px;cursor:pointer;margin-bottom:5px}
+.chk input{display:none}
+.chk-b{width:16px;height:16px;border:2px solid var(--bdr);border-radius:4px;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;margin-top:1px}
+.chk input:checked+.chk-b{background:var(--acc);border-color:var(--acc)}
+.chk input:checked+.chk-b::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
+.chk input:checked~.chk-t{color:var(--t3);text-decoration:line-through}
+.chk-t{font-size:12px;flex:1;line-height:1.4}
+
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.si{text-align:center;padding:10px;background:var(--bg);border-radius:var(--rs)}
+.sv{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.sl{font-size:9px;color:var(--t2);margin-top:2px}
+
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.ch{font-size:10px;text-align:center;color:var(--t3);padding:3px;font-weight:600}
+.cd{padding:3px;border-radius:var(--rs);background:var(--bg);border:1px solid transparent;cursor:pointer;font-size:10px;min-height:38px;display:flex;flex-direction:column;align-items:center;transition:.12s}
+.cd:hover{border-color:var(--acc)}.cd.today{border-color:var(--acc);background:rgba(124,108,240,.06)}
+.cd.sel{background:rgba(124,108,240,.12);border-color:var(--acc2)}
+.cd.blk{background:rgba(239,107,90,.06);border-color:rgba(239,107,90,.2)}
+.cd.empty{background:transparent;cursor:default;border:none}
+.cdots{display:flex;gap:1px;margin-top:2px;flex-wrap:wrap;justify-content:center}
+.cdot{width:3px;height:3px;border-radius:50%}
+
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.md{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;width:100%;max-width:440px;max-height:80vh;overflow-y:auto}
+.mt{font-size:15px;font-weight:700;margin-bottom:14px}
+
+.badge{display:inline-flex;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:600}
+.mb{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:600}
+
+.tr{display:flex;min-height:42px;border-bottom:1px solid rgba(42,48,69,.5)}
+.tl{width:44px;flex-shrink:0;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);padding:3px 6px 0 0;text-align:right}
+.tc{flex:1;padding:2px 3px}
+
+.alarm{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,var(--acc),var(--red));color:#fff;padding:10px 16px;text-align:center;font-size:12px;font-weight:600;z-index:2000;animation:sd .3s}
+@keyframes sd{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fi .25s ease}
+
+.pomo{text-align:center;padding:14px;background:var(--bg);border-radius:var(--r)}
+.pomo-t{font-size:44px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:2px}
+.pomo-l{font-size:11px;color:var(--t2);margin-top:3px}
+.pomo-c{display:flex;gap:6px;justify-content:center;margin-top:10px}
+
+.exp-h{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:6px 0;user-select:none}
+.exp-h:hover{color:var(--acc2)}
+.exp-arr{font-size:10px;transition:.2s;color:var(--t3)}.exp-arr.open{transform:rotate(90deg)}
+
+.cpi{padding:5px 8px;border-radius:var(--rs);margin-bottom:2px;font-size:11px;display:flex;align-items:center;gap:6px;transition:.1s}
+.cpi:nth-child(odd){background:var(--bg)}
+.cpi .num{color:var(--t3);font-family:'JetBrains Mono',monospace;font-size:10px;width:22px;flex-shrink:0}
+.cpi .ttl{flex:1;line-height:1.3}
+.cpi .done{color:var(--grn);font-size:12px}
+
+@media(max-width:360px){.content{padding:10px 10px 90px}.hdr{padding:10px 12px}}
+@media(min-width:768px){.sg{grid-template-columns:repeat(4,1fr)}}
+.sb-sel{box-shadow:0 0 0 2px var(--acc)!important;background:rgba(124,108,240,.12)!important}
+.edit-row{transition:transform .15s,background .15s}
+.edit-row:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useCallback,useMemo}=React;
+
+// ===== CURRICULUM =====
+const PB=[
+  {id:'PB01',n:1,t:'특허법 개관 및 총칙',p:'총칙'},
+  {id:'PB02',n:2,t:'신규성 (제29조 1항)',p:'특허요건'},
+  {id:'PB03',n:3,t:'진보성 (제29조 2항), 선출원주의',p:'특허요건'},
+  {id:'PB04',n:4,t:'확대된 선출원주의, 불특허사유',p:'특허요건'},
+  {id:'PB05',n:5,t:'공지예외주장 (제30조)',p:'출원제도'},
+  {id:'PB06',n:6,t:'정당한 권리자, 직무발명',p:'출원제도'},
+  {id:'PB07',n:7,t:'보정 (제47조), 보정각하 (제51조)',p:'출원제도'},
+  {id:'PB08',n:8,t:'분할출원 (제52조), 변경/분리출원',p:'출원제도'},
+  {id:'PB09',n:9,t:'심사제도, 우선권주장',p:'출원제도'},
+  {id:'PB10',n:10,t:'특허권의 발생 및 효력',p:'특허권'},
+  {id:'PB11',n:11,t:'실시권 (전용/통상/법정실시권)',p:'특허권'},
+  {id:'PB12',n:12,t:'특허침해 일반, 보호범위 해석, 균등론',p:'침해'},
+  {id:'PB13',n:13,t:'간접침해 (제127조)',p:'침해'},
+  {id:'PB14',n:14,t:'이용관계 (제98조), 권리남용/자유실시 항변',p:'침해'},
+  {id:'PB15',n:15,t:'손해배상 (제128조) (1)',p:'구제'},
+  {id:'PB16',n:16,t:'손해배상 (제128조) (2)',p:'구제'},
+  {id:'PB17',n:17,t:'선택/의약발명',p:'특유발명'},
+  {id:'PB18',n:18,t:'수치한정/파라미터 발명',p:'특유발명'},
+  {id:'PB19',n:19,t:'구제수단 종합',p:'구제'},
+  {id:'PB20',n:20,t:'PBP, 기능식/젭슨/마쿠쉬 청구항',p:'특유청구항'},
+  {id:'PB21',n:21,t:'심판 일반',p:'심판'},
+  {id:'PB22',n:22,t:'일사부재리 원칙 (제163조)',p:'심판'},
+  {id:'PB23',n:23,t:'중복심판청구 금지',p:'심판'},
+  {id:'PB24',n:24,t:'정정심판 (제136조)',p:'심판'},
+  {id:'PB25',n:25,t:'다른 심판/소송과의 관계',p:'심판'},
+  {id:'PB26',n:26,t:'권리범위확인심판 (1)',p:'심판'},
+  {id:'PB27',n:27,t:'권리범위확인심판 (2)',p:'심판'},
+  {id:'PB28',n:28,t:'심결취소소송의 심리범위',p:'소송'},
+  {id:'PB29',n:29,t:'판결의 효력 (기속력)',p:'소송'},
+  {id:'PB30',n:30,t:'PCT 국제출원 및 특례',p:'PCT'},
+];
+
+const PA=[
+  {id:'PA01',n:1,t:'발명의 성립성',p:'P1',s:'미완성 발명, 발명의 정의'},
+  {id:'PA02',n:2,t:'신규성/진보성 (1)',p:'P1',s:'신규성(선행문헌 적격), 확대된 선출원'},
+  {id:'PA03',n:3,t:'진보성 (2)',p:'P1',s:'진보성 판단 기준, 상업적 성공, 사후적 고찰 금지'},
+  {id:'PA04',n:4,t:'진보성 (3)',p:'P1',s:'결합발명, 선택발명 등의 진보성 판단'},
+  {id:'PA05',n:5,t:'특유발명 (1)',p:'P1',s:'수치한정발명, 파라미터 발명'},
+  {id:'PA06',n:6,t:'특유발명 (2)',p:'P1',s:'미생물 기탁, 식물발명 등'},
+  {id:'PA07',n:7,t:'기재불비 (1)',p:'P1',s:'명확성 요건, 뒷받침 요건'},
+  {id:'PA08',n:8,t:'기재불비 (2)',p:'P1',s:'실시가능 요건 (42조 3항 1호)'},
+  {id:'PA09',n:9,t:'보정 (1)',p:'P1',s:'신규사항 추가 금지 판단 기준'},
+  {id:'PA10',n:10,t:'분할출원',p:'P1',s:'분할출원의 시기, 적법 요건'},
+  {id:'PA11',n:11,t:'우선권주장',p:'P1',s:'조약우선권의 성립요건과 효과'},
+  {id:'PA12',n:12,t:'PBP 청구항',p:'P1',s:'제조방법이 기재된 물건발명 해석'},
+  {id:'PA13',n:13,t:'권리범위확인',p:'P2',s:'확인의 이익과 사실적 동일성 판단'},
+  {id:'PA14',n:14,t:'보정제도 등',p:'P2',s:'우선권 실체적 효력, 의견제출기회'},
+  {id:'PA15',n:15,t:'보정각하',p:'P2',s:'새로운 거절이유, 보정각하 위법성'},
+  {id:'PA16',n:16,t:'정당권리자',p:'P2',s:'무권리자 출원 구제, 이전청구'},
+  {id:'PA17',n:17,t:'침해 일반',p:'P2',s:'침해 성립요건, 구성요소 완비'},
+  {id:'PA18',n:18,t:'간접침해',p:'P2',s:'전용품성 판단, 간접침해 성립요건'},
+  {id:'PA19',n:19,t:'이용관계',p:'P2',s:'이용관계 성립과 통상실시권 허락심판'},
+  {id:'PA20',n:20,t:'균등론',p:'P3',s:'균등 제3요건, 의식적 제외 법리'},
+  {id:'PA21',n:21,t:'침해 항변 (1)',p:'P3',s:'자유실시기술의 항변'},
+  {id:'PA22',n:22,t:'침해 항변 (2)',p:'P3',s:'권리남용의 항변'},
+  {id:'PA23',n:23,t:'금지청구',p:'P3',s:'금지청구권 행사 요건'},
+  {id:'PA24',n:24,t:'손해배상 (1)',p:'P3',s:'손해배상액 산정 일반'},
+  {id:'PA25',n:25,t:'손해배상 (2)',p:'P3',s:'구체적 손해액 산정 사례'},
+  {id:'PA26',n:26,t:'손해배상 (3)',p:'P3',s:'기여율, 자유심증, 징벌적 손배'},
+  {id:'PA27',n:27,t:'의약/선택발명',p:'P3',s:'의약용도 진보성, 결정형 발명'},
+  {id:'PA28',n:28,t:'심판 일반',p:'P4',s:'심판 심리 원칙, 심판관 제척/기피'},
+  {id:'PA29',n:29,t:'공유/일사부재리',p:'P4',s:'공유특허권 권리관계, 전원합의체'},
+  {id:'PA30',n:30,t:'실시권/무효',p:'P4',s:'실시계약과 무효심판 관계'},
+  {id:'PA31',n:31,t:'정정/재심',p:'P4',s:'정정심판 관계, 재심사유 (전원합의체)'},
+  {id:'PA32',n:32,t:'소송심리 (1)',p:'P4',s:'확인대상발명 특정, 각하심결 심리'},
+  {id:'PA33',n:33,t:'소송심리 (2)',p:'P4',s:'결정계 심결취소, 새로운 사유 주장'},
+  {id:'PA34',n:34,t:'판결효력',p:'P4',s:'변론주의, 기속력 범위'},
+];
+
+const PW=[
+  {id:'PW01',n:1,t:'답안작성법',s:'답안작성론 (Mokcha 잡기)'},
+  {id:'PW02',n:2,t:'특허를 받을 수 있는 발명',s:'미완성 발명'},
+  {id:'PW03',n:3,t:'신규성, 진보성, 확대된 선출원',s:'특허요건'},
+  {id:'PW04',n:4,t:'명세서 기재불비',s:'42조 3항1호, 4항1호/2호'},
+  {id:'PW05',n:5,t:'무권리자 출원, 이전청구',s:'정당권리자'},
+  {id:'PW06',n:6,t:'공지예외주장, 우선권주장',s:'이익/심사'},
+  {id:'PW07',n:7,t:'보정의 적법성, 분할출원',s:'보정/분할'},
+  {id:'PW08',n:8,t:'보상금청구권',s:'출원공개 후 조치'},
+  {id:'PW09',n:9,t:'특허침해 분쟁',s:'구성요소 완비'},
+  {id:'PW10',n:10,t:'이용관계, 권리범위확인심판',s:'침해(2)'},
+  {id:'PW11',n:11,t:'간접침해 성립요건',s:'전용품성 등'},
+  {id:'PW12',n:12,t:'전용실시권, 통상실시권',s:'실시권(1)'},
+  {id:'PW13',n:13,t:'법정실시권',s:'실시권(2)'},
+  {id:'PW14',n:14,t:'침해 금지 및 손해배상',s:'구제수단'},
+  {id:'PW15',n:15,t:'파라미터, 선택, 의약발명',s:'특유발명'},
+  {id:'PW16',n:16,t:'PBP, 기능식, 젭슨, 마쿠쉬',s:'특유청구항'},
+  {id:'PW17',n:17,t:'특허무효심판',s:'이해관계인'},
+  {id:'PW18',n:18,t:'정정심판, 정정무효',s:'정정제도'},
+  {id:'PW19',n:19,t:'권리범위확인심판',s:'권리범위'},
+  {id:'PW20',n:20,t:'PCT 특례',s:'PCT'},
+];
+
+const CE=[
+  {id:'CE00',n:0,t:'오리엔테이션',s:'과목 소개, 학습방법, 라플라스 변환 기초'},
+  {id:'CE01',n:1,t:'자동 제어계의 개요',s:'개루프/폐루프, 서보/프로세스, 연속/불연속'},
+  {id:'CE02',n:2,t:'1장 문제풀이',s:'자동 제어계 개요 연습문제'},
+  {id:'CE03',n:3,t:'블록선도, 신호흐름도, 연산증폭기',s:'등가변환, 메이슨 이득공식, Op-Amp'},
+  {id:'CE04',n:4,t:'2장 문제풀이',s:'블록선도 변환, 신호흐름도 해석'},
+  {id:'CE05',n:5,t:'과도 응답 (1)',s:'표준시험입력, 특성방정식, 특성근 안정도'},
+  {id:'CE06',n:6,t:'과도 응답 (2)',s:'1차/2차 지연계, 제동비(ζ), 오버슈트'},
+  {id:'CE07',n:7,t:'정상 응답 (오차 및 감도)',s:'최종값 정리, Type별 정상편차, 감도'},
+  {id:'CE08',n:8,t:'3장 문제풀이',s:'과도응답, 정상오차 문제'},
+  {id:'CE09',n:9,t:'주파수 영역 해석',s:'주파수 전달함수, 보드선도, 이득/위상여유'},
+  {id:'CE10',n:10,t:'4장 문제풀이',s:'주파수 영역 해석 문제'},
+  {id:'CE11',n:11,t:'안정도 판별',s:'Routh 판별법, Nyquist 선도, 보드선도 안정도'},
+  {id:'CE12',n:12,t:'5장 문제풀이',s:'안정도 판별법 문제'},
+  {id:'CE13',n:13,t:'근궤적법',s:'근궤적 작성법, 점근선, 이탈점/분지점'},
+  {id:'CE14',n:14,t:'6장 문제풀이',s:'근궤적법 문제'},
+  {id:'CE15',n:15,t:'상태 공간법 (1)',s:'상태방정식, 특성방정식, 상태천이행렬'},
+  {id:'CE16',n:16,t:'상태 공간법 (2) & Z변환',s:'가제어성/가관측성, Z변환, Z평면 안정도'},
+  {id:'CE17',n:17,t:'7장 문제풀이',s:'상태공간법, Z변환 문제'},
+  {id:'CE18',n:18,t:'시퀀스 제어',s:'논리회로, 드모르간, 자기유지회로'},
+  {id:'CE19',n:19,t:'8장 문제풀이',s:'시퀀스 제어, 논리회로 문제'},
+];
+
+const CRS=[
+  {k:'pb',nm:'특허법 기본이론',sh:'기본',lc:PB,cl:'patent',tot:30,ic:'📖'},
+  {k:'pa',nm:'특허법 판례심화',sh:'판례',lc:PA,cl:'patent',tot:34,ic:'⚖️'},
+  {k:'pw',nm:'2차 답안작성',sh:'답작',lc:PW,cl:'exam',tot:20,ic:'✍️'},
+  {k:'ce',nm:'제어공학 인강',sh:'제어',lc:CE,cl:'control',tot:20,ic:'⚙️'},
+];
+
+const SRI=[1,3,7,14,30,60];
+const SRL=['1일후','3일후','7일후','14일후','30일후','60일후'];
+
+// Utils
+const fmt=d=>{const x=new Date(d);return`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
+const td=()=>fmt(new Date());
+const addD=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return fmt(r)};
+const DN=['일','월','화','수','목','금','토'];
+const gdn=d=>DN[new Date(d).getDay()];
+const diffD=(a,b)=>Math.ceil((new Date(b)-new Date(a))/864e5);
+const fT=m=>`${Math.floor(m/60)}h ${m%60}m`;
+const EXAM='2026-07-31';
+const EXAM2='2026-08-01'; // 제어공학 시험일
+const gDD=()=>{const d=diffD(td(),EXAM);return d>0?d:0};
+
+const LS={
+  g:(k,d)=>{try{const v=localStorage.getItem('bp3_'+k);return v?JSON.parse(v):d}catch{return d}},
+  s:(k,v)=>{try{localStorage.setItem('bp3_'+k,JSON.stringify(v))}catch{}},
+};
+
+// Schedule Generator
+function genSch(start,blocked=[],initIx={}){
+  const s={};const dday=diffD(start,EXAM);const tw=Math.floor(dday/7);
+  // Phase 1: 이론완성+단권화 (2~3월, ~32%)
+  // Phase 2: 실전GS+답안작성 (4~6월, ~84%)
+  // Phase 3: 압축회독+시뮬레이션 (7월)
+  const p1=Math.floor(tw*0.32),p2=Math.floor(tw*0.84);
+  let ix={pb:initIx.pb||0,pa:initIx.pa||0,pw:initIx.pw||0,ce:initIx.ce||0};
+
+  for(let w=0;w<tw&&w<60;w++){
+    for(let d=0;d<7;d++){
+      const date=addD(start,w*7+d);
+      if(new Date(date)>new Date(EXAM))break;
+      if(blocked.includes(date))continue;
+      const dow=new Date(date).getDay();
+      const it=[];
+
+      if(dow===0){
+        it.push({time:'09:00',dur:90,tp:'review',t:'📖 주간 종합 복습 - 특허법 (단권화)',md:'output',sj:'patent'});
+        it.push({time:'10:30',dur:20,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'10:50',dur:60,tp:'review',t:'⚙️ 주간 복습 - 제어공학 기출유형',md:'output',sj:'control'});
+        it.push({time:'11:50',dur:70,tp:'rest',t:'🍚 점심 + 휴식'});
+        it.push({time:'13:00',dur:50,tp:'exercise',t:'🏃 운동/산책'});
+        it.push({time:'14:00',dur:120,tp:'exam',t:'📝 기출 시간제한 풀이 (2h 시뮬)',md:'output',sj:'patent'});
+        it.push({time:'16:00',dur:30,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output',sj:'patent'});
+        it.push({time:'16:30',dur:30,tp:'rest',t:'🎵 자유시간'});
+      } else {
+        it.push({time:'06:30',dur:30,tp:'rest',t:'🌅 기상 + 준비'});
+        // Phase 1 (2~3월): 이론완성 + 단권화
+        if(w<p1){
+          it.push({time:'07:00',dur:20,tp:'patent',t:'📕 법전 조문 찾기 훈련 (5~10초)',md:'input',sj:'patent'});
+          const l=PB[Math.min(ix.pb,29)];
+          it.push({time:'07:20',dur:80,tp:'patent',t:`[입력] 기본 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pb'});
+          it.push({time:'08:40',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'08:50',dur:40,tp:'output',t:`[출력] 기본 ${l.n}강 단권화+기억확인`,md:'output',sj:'patent'});
+        }
+        // Phase 2 (4~6월): GS실전 + 답안작성 체화
+        else if(w<p2){
+          const l=PA[Math.min(ix.pa,33)];
+          it.push({time:'07:00',dur:90,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
+          it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
+          const lw=PW[Math.min(ix.pw,19)];
+          it.push({time:'08:45',dur:45,tp:'answer',t:`[출력] 답작연습: ${lw.t} (사안포섭)`,md:'output',sj:'patent',lid:lw.id,cr:'pw'});
+        }
+        // Phase 3 (7월): 압축회독 + 시뮬레이션
+        else {
+          it.push({time:'07:00',dur:60,tp:'review',t:'[회독] 특허법 압축회독 (8-4-2-1)',md:'output',sj:'patent'});
+          it.push({time:'08:00',dur:15,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'08:15',dur:75,tp:'exam',t:'[시뮬] 실전 모의답안 작성 (시간제한)',md:'output',sj:'patent'});
+        }
+        it.push({time:'09:35',dur:25,tp:'rest',t:'☕ 휴식 + 간식'});
+        // Mid: Control
+        const cl=CE[Math.min(ix.ce,19)];
+        it.push({time:'10:00',dur:90,tp:'control',t:`[입력] 제어 ${cl.n}강: ${cl.t}`,md:'input',sj:'control',lid:cl.id,cr:'ce'});
+        it.push({time:'11:30',dur:15,tp:'rest',t:'🧘 휴식'});
+        it.push({time:'11:45',dur:45,tp:'output',t:'[출력] 제어공학 문제풀이',md:'output',sj:'control'});
+        it.push({time:'12:30',dur:60,tp:'rest',t:'🍚 점심식사'});
+        it.push({time:'13:30',dur:30,tp:'rest',t:'😴 낮잠'});
+        it.push({time:'14:00',dur:40,tp:'exercise',t:'🏃 운동 (유산소/근력)'});
+        it.push({time:'14:40',dur:20,tp:'rest',t:'🚿 정리'});
+        it.push({time:'15:00',dur:80,tp:'review',t:'[복습] 특허법 간격반복',md:'output',sj:'patent'});
+        it.push({time:'16:20',dur:20,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'16:40',dur:80,tp:'review',t:'[복습] 제어공학 간격반복',md:'output',sj:'control'});
+        it.push({time:'18:00',dur:60,tp:'rest',t:'🍚 저녁식사'});
+        it.push({time:'19:00',dur:30,tp:'rest',t:'🎵 자유시간'});
+        if(dow===6){
+          it.push({time:'19:30',dur:120,tp:'exam',t:'📝 모의시험 실전연습 (2시간 시뮬)',md:'output',sj:'patent'});
+          it.push({time:'21:30',dur:30,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output'});
+        } else if(w>=p1){
+          it.push({time:'19:30',dur:80,tp:'exam',t:`📝 기출분석 (${dow%2===0?'특허법':'제어공학'})`,md:'output',sj:dow%2===0?'patent':'control'});
+          it.push({time:'20:50',dur:10,tp:'rest',t:'☕'});
+          it.push({time:'21:00',dur:30,tp:'review',t:'[정리] 오늘 총정리+단권화',md:'output'});
+        } else {
+          it.push({time:'19:30',dur:60,tp:'review',t:'[정리] 형광펜 단권화+내일준비',md:'output'});
+        }
+        it.push({time:'22:00',dur:30,tp:'rest',t:'🌙 취침준비'});
+        // Advance lecture indices
+        if(dow===1||dow===3||dow===5){
+          if(w<p1)ix.pb=Math.min(ix.pb+1,30);
+          else if(w<p2){ix.pa=Math.min(ix.pa+1,34);if(dow===3||dow===5)ix.pw=Math.min(ix.pw+1,20)}
+        }
+        if(dow===2||dow===4)ix.ce=Math.min(ix.ce+1,20);
+      }
+      s[date]=it;
+    }
+  }
+  return s;
+}
+
+const TIPS=[
+  '📕 법전 훈련: 매일 아침 조문 찾기 연습! 5~10초 내에 위치를 찾는 감각이 시험장에서 시간을 벌어줍니다.',
+  '✍️ 사안포섭이 최고 배점! 甲·乙·날짜·출원번호를 답안에 반드시 포함, ①②원문자로 줄바꿈하며 풍부하게!',
+  '📝 답안 16쪽↑! 판례 키워드에 \'작은따옴표\' 강조 → 채점자가 읽지 않고 바로 득점 처리합니다.',
+  '🎯 주간 특허법 23.3시간↑! 민소법·상표법 면제 이점을 특허법 깊이에 올인하세요.',
+  '📊 단권화 4색: 판례=파란, 학설/검토=빨강, GS논점=초록, 키워드=노랑 형광펜!',
+  '⚖️ 검토(학설)는 2줄 이내 방어적 작성. "~하므로 타당하다"로 마무리!',
+  '🏃 운동 = BDNF 촉진 = 기억력 30%↑. 매일 40분 운동 사수!',
+  '📋 7월 압축회독: 8→4→2→1일 간격. 마지막 날 10시간에 책 한 권 1회독!',
+  '⚙️ 제어공학 P/F(50점): Bode·Routh·상태방정식 기출유형 + 계산기(복소수·행렬) 숙달!',
+  '✏️ 필기구를 지금 확정! 제트스트림 0.7mm 등 본인 펜으로 필속을 미리 점검하세요.',
+  '🎓 GS는 최소 2명 강사 수강! 32개 논점(4문제×8회) + 불의타(예상 외 문제) 대비가 핵심.',
+  '🪑 시뮬레이션: 좁은 책상에 법전·문제지·답안지·스톱워치 배치 → 실전 감각 극대화!',
+  '🧠 에빙하우스: 학습 후 24시간 내 70%를 잊습니다. 간격반복 첫 복습이 가장 중요!',
+  '📌 원서접수 4.20~4.24 → 경력증명서 등 면제서류 기간 내 제출 필수! 잊지 마세요!',
+];
+// Key dates
+const APP_START='2026-04-20',APP_END='2026-04-24';
+const appDday=()=>{const d=diffD(td(),APP_START);return d>0?d:0};
+
+// ===== APP =====
+function App(){
+  const[tab,setTab]=useState('dash');
+  const[sch,setSch]=useState(()=>LS.g('sch',{}));
+  const[log,setLog]=useState(()=>LS.g('log',{}));
+  const[rq,setRq]=useState(()=>LS.g('rq',[]));
+  const[blk,setBlk]=useState(()=>LS.g('blk',[]));
+  const[sel,setSel]=useState(td());
+  const[modal,setModal]=useState(null);
+  const[pomoOn,setPomoOn]=useState(false);
+  const[pomoT,setPomoT]=useState(50*60);
+  const[pomoM,setPomoM]=useState('study');
+  const[alarm,setAlarm]=useState(null);
+  const[done,setDone]=useState(()=>LS.g('done',{}));
+  const[cm,setCm]=useState(()=>{const d=new Date();return{y:d.getFullYear(),m:d.getMonth()}});
+  const[wo,setWo]=useState(0);
+  const[notes,setNotes]=useState(()=>LS.g('notes',{}));
+  const[cp,setCp]=useState(()=>LS.g('cp',{}));
+  const[settings,setSettings]=useState(()=>LS.g('set',{pomoS:50,pomoB:10}));
+  const[exp,setExp]=useState({});
+  const[editMode,setEditMode]=useState(false);
+  const[moveSel,setMoveSel]=useState(null); // {date,idx} of selected item for move
+
+  useEffect(()=>{LS.s('sch',sch)},[sch]);
+  useEffect(()=>{LS.s('log',log)},[log]);
+  useEffect(()=>{LS.s('rq',rq)},[rq]);
+  useEffect(()=>{LS.s('blk',blk)},[blk]);
+  useEffect(()=>{LS.s('done',done)},[done]);
+  useEffect(()=>{LS.s('notes',notes)},[notes]);
+  useEffect(()=>{LS.s('cp',cp)},[cp]);
+  useEffect(()=>{LS.s('set',settings)},[settings]);
+
+  // Init: mark PB01-PB11 as completed on first load, then generate schedule from PB12
+  useEffect(()=>{
+    const isFirst=!localStorage.getItem('bp3_init');
+    if(isFirst){
+      const pbDone=['PB01','PB02','PB03','PB04','PB05','PB06','PB07','PB08','PB09','PB10','PB11'];
+      setCp(p=>({...p,pb:pbDone}));
+      setSch(genSch(td(),blk,{pb:11}));
+      localStorage.setItem('bp3_init','1');
+    } else if(Object.keys(sch).length===0){
+      const pbProg=(cp.pb||[]).length;
+      const paProg=(cp.pa||[]).length;
+      const pwProg=(cp.pw||[]).length;
+      const ceProg=(cp.ce||[]).length;
+      setSch(genSch(td(),blk,{pb:pbProg,pa:paProg,pw:pwProg,ce:ceProg}));
+    }
+  },[]);
+
+  useEffect(()=>{
+    if(!pomoOn)return;
+    const t=setInterval(()=>{setPomoT(p=>{
+      if(p<=1){setPomoOn(false);
+        if(pomoM==='study'){setAlarm('📚 집중 종료! 휴식하세요.');setPomoM('break');return settings.pomoB*60}
+        else{setAlarm('⏰ 휴식 종료! 시작!');setPomoM('study');return settings.pomoS*60}
+      }return p-1;
+    })},1000);return()=>clearInterval(t);
+  },[pomoOn,pomoM]);
+
+  useEffect(()=>{if(alarm){const t=setTimeout(()=>setAlarm(null),4000);return()=>clearTimeout(t)}},[alarm]);
+
+  const addStudy=useCallback((sj,title,date=td())=>{
+    const nr=SRI.map((days,i)=>({sj,title,date,rd:addD(date,days),rn:i+1,rl:SRL[i],dn:false,id:`${date}_${sj}_${i}_${Date.now()}`}));
+    setRq(p=>[...p,...nr]);
+  },[]);
+
+  const tgDone=useCallback((date,idx)=>{setDone(p=>({...p,[`${date}_${idx}`]:!p[`${date}_${idx}`]}))},[]);
+  const compRev=useCallback(id=>{setRq(p=>p.map(r=>r.id===id?{...r,dn:true}:r))},[]);
+  const logT=useCallback((date,m,sj)=>{setLog(p=>({...p,[date]:{...(p[date]||{}),[sj]:((p[date]||{})[sj]||0)+m}}))},[]);
+
+  const compLec=useCallback((ck,lid,title)=>{
+    setCp(p=>{const a=p[ck]||[];if(a.includes(lid))return p;return{...p,[ck]:[...a,lid]}});
+    addStudy(ck==='ce'?'control':'patent',title);
+    setAlarm(`✅ "${title}" 완료! 복습 스케줄 생성`);
+  },[addStudy]);
+
+  const regen=useCallback(()=>{
+    const ix={pb:(cp.pb||[]).length,pa:(cp.pa||[]).length,pw:(cp.pw||[]).length,ce:(cp.ce||[]).length};
+    setSch(genSch(td(),blk,ix));setAlarm('📅 스케줄 재생성 완료! (현재 진도 반영)');
+  },[blk,cp]);
+  const tgBlk=useCallback(d=>{setBlk(p=>p.includes(d)?p.filter(x=>x!==d):[...p,d])},[]);
+
+  // Schedule item manipulation
+  const moveItem=useCallback((date,fromIdx,toIdx)=>{
+    setSch(p=>{
+      const items=[...(p[date]||[])];
+      if(fromIdx<0||fromIdx>=items.length||toIdx<0||toIdx>=items.length)return p;
+      const[item]=items.splice(fromIdx,1);
+      items.splice(toIdx,0,item);
+      // Update times based on new positions
+      const reTime=items.map((it,i)=>{
+        if(i===0)return it;
+        const prev=items[i-1];
+        const pMin=parseInt(prev.time.split(':')[0])*60+parseInt(prev.time.split(':')[1])+prev.dur;
+        const h=Math.floor(pMin/60),m=pMin%60;
+        return{...it,time:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`};
+      });
+      return{...p,[date]:reTime};
+    });
+  },[]);
+
+  const deleteItem=useCallback((date,idx)=>{
+    setSch(p=>{
+      const items=[...(p[date]||[])];
+      items.splice(idx,1);
+      return{...p,[date]:items};
+    });
+  },[]);
+
+  const handleMoveTap=useCallback((date,idx)=>{
+    if(!moveSel){
+      setMoveSel({date,idx});
+    } else {
+      if(moveSel.date===date&&moveSel.idx!==idx){
+        moveItem(date,moveSel.idx,idx);
+        setAlarm('✅ 스케줄 이동 완료');
+      }
+      setMoveSel(null);
+    }
+  },[moveSel,moveItem]);
+
+  const todayRev=useMemo(()=>rq.filter(r=>r.rd===td()&&!r.dn),[rq]);
+  const overdueRev=useMemo(()=>rq.filter(r=>r.rd<td()&&!r.dn),[rq]);
+  const todaySch=useMemo(()=>sch[sel]||[],[sch,sel]);
+  const studyIt=useMemo(()=>todaySch.filter(i=>i.tp!=='rest'&&i.tp!=='exercise'),[todaySch]);
+  const doneCount=useMemo(()=>{let c=0;todaySch.forEach((_,i)=>{if(done[`${sel}_${i}`])c++});return c},[todaySch,done,sel]);
+
+  const pi=useMemo(()=>{
+    const dd=gDD(),tot=diffD('2026-02-07',EXAM),el=tot-dd;
+    const p1=Math.floor(tot*.32),p2=Math.floor(tot*.84);
+    let ph,lb,co;
+    if(el<p1){ph=1;lb='1단계: 이론완성+단권화 (2~3월)';co='var(--blu)'}
+    else if(el<p2){ph=2;lb='2단계: 실전GS+답안작성 (4~6월)';co='var(--ylw)'}
+    else{ph=3;lb='3단계: 압축회독+시뮬 (7월)';co='var(--red)'}
+    return{ph,lb,co,pct:Math.round(el/tot*100)};
+  },[]);
+
+  // DASHBOARD
+  const renderDash=()=>{
+    const dd=gDD();
+    const ti=sch[td()]||[];
+    const dc=ti.filter((_,i)=>done[`${td()}_${i}`]).length;
+    const ts=ti.filter(i=>i.tp!=='rest'&&i.tp!=='exercise').length;
+    const streak=(()=>{let s=0,d=td();while(log[d]){s++;d=addD(d,-1)}return s})();
+    // Weekly patent hours
+    const weekPatentMins=(()=>{let m=0;for(let i=0;i<7;i++){const d=addD(td(),-i);m+=((log[d]||{}).patent||0)}return m})();
+    const weekPct=Math.min(Math.round(weekPatentMins/(23.3*60)*100),100);
+    return <div className="fi">
+      <div className="sg" style={{marginBottom:10}}>
+        <div className="si"><div className="sv" style={{color:dd<=30?'var(--red)':'var(--ylw)'}}>D-{dd}</div><div className="sl">시험까지 (7.31)</div></div>
+        <div className="si"><div className="sv" style={{color:'var(--grn)'}}>{dc}/{ts}</div><div className="sl">오늘 완료</div></div>
+        <div className="si"><div className="sv" style={{color:'var(--ylw)'}}>{todayRev.length+overdueRev.length}</div><div className="sl">복습 대기</div></div>
+        <div className="si"><div className="sv" style={{color:'var(--blu)'}}>{streak}일</div><div className="sl">연속 학습</div></div>
+      </div>
+
+      {/* Weekly patent hours target */}
+      <div className="c" style={{borderColor:weekPct>=100?'rgba(45,212,168,.3)':'rgba(240,192,64,.3)'}}>
+        <div className="ct">🎯 주간 특허법 목표 (23.3h)</div>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}}>
+          <span style={{color:weekPct>=100?'var(--grn)':'var(--ylw)',fontWeight:600}}>{fT(weekPatentMins)} / 23.3h</span>
+          <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--t3)'}}>{weekPct}%</span>
+        </div>
+        <div className="pb" style={{height:6}}><div className="pf" style={{width:`${weekPct}%`,background:weekPct>=100?'var(--grn)':'linear-gradient(90deg,var(--ylw),var(--acc))'}}></div></div>
+      </div>
+
+      {/* Application deadline alert */}
+      {appDday()>0&&appDday()<=60&&<div className="c" style={{borderColor:'rgba(239,107,90,.3)',background:'rgba(239,107,90,.04)'}}>
+        <div className="ct" style={{color:'var(--red)'}}>📌 원서접수 D-{appDday()}</div>
+        <div style={{fontSize:11,color:'var(--t2)',lineHeight:1.5}}>
+          <p>📋 접수: 2026.4.20(월)~4.24(금) 18:00</p>
+          <p>📄 서류제출: ~17:00 (경력증명서 필수!)</p>
+        </div>
+      </div>}
+      {td()>=APP_START&&td()<=APP_END&&<div className="c" style={{borderColor:'rgba(239,107,90,.5)',background:'rgba(239,107,90,.12)'}}>
+        <div className="ct" style={{color:'var(--red)',fontSize:14}}>🚨 원서접수 기간입니다!</div>
+        <div style={{fontSize:12,color:'var(--t1)',lineHeight:1.6,fontWeight:500}}>
+          <p>⏰ 원서접수: ~4.24(금) 18:00</p>
+          <p>📄 서류제출: ~4.24(금) 17:00</p>
+          <p>⚠️ 경력증명서 등 면제서류 제출 필수!</p>
+        </div>
+      </div>}
+
+      {/* Exam schedule quick view */}
+      <div className="c" style={{background:'rgba(124,108,240,.04)'}}>
+        <div className="ct">📋 시험 일정</div>
+        <div style={{display:'flex',gap:8}}>
+          <div style={{flex:1,background:'var(--bg)',borderRadius:'var(--rs)',padding:8,textAlign:'center'}}>
+            <div style={{fontSize:9,color:'var(--t3)'}}>1일차 7.31(금)</div>
+            <div style={{fontSize:12,fontWeight:600,color:'var(--acc2)',marginTop:2}}>특허법</div>
+            <div style={{fontSize:10,color:'var(--t2)'}}>09:30~11:30</div>
+          </div>
+          <div style={{flex:1,background:'var(--bg)',borderRadius:'var(--rs)',padding:8,textAlign:'center'}}>
+            <div style={{fontSize:9,color:'var(--t3)'}}>2일차 8.1(토)</div>
+            <div style={{fontSize:12,fontWeight:600,color:'var(--cyn)',marginTop:2}}>제어공학</div>
+            <div style={{fontSize:10,color:'var(--t2)'}}>13:30~15:30</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="c"><div className="ct">🎯 학습 단계</div>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}}>
+          <span style={{fontWeight:600,color:pi.co}}>{pi.lb}</span><span style={{color:'var(--t3)'}}>{pi.pct}%</span>
+        </div>
+        <div className="pb" style={{height:6}}><div className="pf" style={{width:`${pi.pct}%`,background:'linear-gradient(90deg,var(--blu),var(--ylw),var(--red))'}}></div></div>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'var(--t3)',marginTop:3}}><span>이론(~3월)</span><span>GS실전(4~6월)</span><span>회독(7월)</span></div>
+      </div>
+      <div className="c"><div className="ct">📚 과목별 진도</div>
+        {CRS.map(c=>{const n=(cp[c.k]||[]).length;const pct=Math.round(n/c.tot*100);
+          return <div key={c.k} style={{marginBottom:8}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:3}}>
+              <span>{c.ic} {c.nm}</span><span style={{fontFamily:'JetBrains Mono',fontSize:10,color:pct===100?'var(--grn)':'var(--t2)'}}>{n}/{c.tot} ({pct}%)</span>
+            </div><div className="pb"><div className="pf" style={{width:`${pct}%`,background:`var(--${c.cl})`}}></div></div>
+          </div>
+        })}
+      </div>
+      <div className="c"><div className="ct">⏱️ 뽀모도로</div>
+        <div className="pomo">
+          <div className="pomo-t" style={{color:pomoM==='study'?'var(--acc2)':'var(--grn)'}}>{String(Math.floor(pomoT/60)).padStart(2,'0')}:{String(pomoT%60).padStart(2,'0')}</div>
+          <div className="pomo-l">{pomoM==='study'?'📚 집중':'☕ 휴식'}</div>
+          <div className="pomo-c">
+            <button className="b bp" onClick={()=>setPomoOn(!pomoOn)}>{pomoOn?'⏸':'▶'} {pomoOn?'일시정지':'시작'}</button>
+            <button className="b bs" onClick={()=>{setPomoOn(false);setPomoT(settings.pomoS*60);setPomoM('study')}}>↺ 리셋</button>
+          </div>
+        </div>
+      </div>
+      {(todayRev.length+overdueRev.length)>0&&<div className="c" style={{borderColor:'rgba(240,192,64,.3)'}}>
+        <div className="ct">🔔 복습 알림</div>
+        {overdueRev.slice(0,3).map(r=><div key={r.id} className="sb exam" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontWeight:500}}>{r.title}</div><div style={{fontSize:9,color:'var(--t3)'}}>⚠️ {r.rd}</div></div>
+          <button className="b bsm bsuc" onClick={()=>compRev(r.id)}>✓</button>
+        </div>)}
+        {todayRev.slice(0,5).map(r=><div key={r.id} className="sb review" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontWeight:500}}>{r.title}</div><div style={{fontSize:9,color:'var(--t3)'}}>{r.rl}</div></div>
+          <button className="b bsm bsuc" onClick={()=>compRev(r.id)}>✓</button>
+        </div>)}
+      </div>}
+      <div className="c"><div className="ct">📋 오늘의 계획</div>
+        {ti.length===0?<p style={{color:'var(--t3)',fontSize:12}}>스케줄 없음</p>:
+        ti.map((item,idx)=>{const id=done[`${td()}_${idx}`];
+          return <label key={idx} className="chk"><input type="checkbox" checked={!!id} onChange={()=>{
+            tgDone(td(),idx);if(!id&&item.sj&&item.dur){logT(td(),item.dur,item.sj);
+              if(item.md==='input'&&item.lid)compLec(item.cr,item.lid,item.t.replace(/\[.*?\]\s*/,''))}
+          }}/><span className="chk-b"></span>
+            <span className="chk-t"><span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--t3)',marginRight:5}}>{item.time}</span>{item.t}
+              <span className="badge" style={{marginLeft:3,background:'var(--bg)',color:'var(--t3)',fontSize:8}}>{item.dur}분</span>
+              {item.md&&<span className="mb" style={{marginLeft:2,background:item.md==='input'?'var(--blu2)':'var(--pnk2)',color:item.md==='input'?'var(--blu)':'var(--pnk)'}}>{item.md==='input'?'입력':'출력'}</span>}
+            </span></label>
+        })}
+      </div>
+      <div className="c"><div className="ct">⚡ 빠른 실행</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+          <button className="b bp" onClick={()=>setModal('add')}>+ 공부기록</button>
+          <button className="b bs" onClick={()=>setModal('blk')}>🚫 휴일</button>
+          <button className="b bs" onClick={regen}>🔄 재생성</button>
+          <button className="b bs" onClick={()=>setModal('man')}>✏️ 추가</button>
+        </div>
+      </div>
+      <div className="c" style={{background:'linear-gradient(135deg,rgba(124,108,240,.06),rgba(64,216,208,.06))'}}><div style={{fontSize:12,color:'var(--t2)',lineHeight:1.6}}>{TIPS[new Date().getDate()%TIPS.length]}</div></div>
+    </div>;
+  };
+
+  // DAILY
+  const renderDaily=()=>{
+    const items=sch[sel]||[];
+    return <div className="fi">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+        <button className="b bs bsm" onClick={()=>{setSel(addD(sel,-1));setMoveSel(null)}}>◀</button>
+        <div style={{textAlign:'center'}}><div style={{fontSize:14,fontWeight:600}}>{sel} ({gdn(sel)})</div><div style={{fontSize:10,color:'var(--t3)'}}>{sel===td()?'📌 오늘':`D${diffD(td(),sel)>=0?'+':''}${diffD(td(),sel)}`}</div></div>
+        <button className="b bs bsm" onClick={()=>{setSel(addD(sel,1));setMoveSel(null)}}>▶</button>
+      </div>
+
+      {blk.includes(sel)&&<div className="c" style={{background:'var(--red2)'}}><span style={{fontSize:12,color:'var(--red)',fontWeight:600}}>🚫 휴일</span> <button className="b bsm bs" style={{marginLeft:8}} onClick={()=>tgBlk(sel)}>해제</button></div>}
+
+      {/* Edit mode toggle */}
+      <div style={{display:'flex',gap:6,marginBottom:8}}>
+        <button className={`b ${editMode?'bp':'bs'} bsm`} onClick={()=>{setEditMode(!editMode);setMoveSel(null)}}>
+          {editMode?'✓ 편집완료':'✏️ 스케줄 편집'}
+        </button>
+        {editMode&&<div style={{fontSize:10,color:'var(--t2)',display:'flex',alignItems:'center'}}>항목을 탭하여 선택 → 이동할 위치 탭</div>}
+      </div>
+
+      {items.length===0?<div className="c"><p style={{color:'var(--t3)',fontSize:12}}>스케줄 없음</p></div>:
+      items.map((item,idx)=>{
+        const id=done[`${sel}_${idx}`];
+        const isSel=moveSel&&moveSel.date===sel&&moveSel.idx===idx;
+
+        if(editMode){
+          return <div key={idx} style={{
+            display:'flex',alignItems:'center',gap:4,marginBottom:3,
+            background:isSel?'rgba(124,108,240,.15)':'transparent',
+            borderRadius:'var(--rs)',padding:isSel?'2px 4px':'2px 4px',
+            border:isSel?'1px solid var(--acc)':'1px solid transparent',
+            transition:'.12s'
+          }}>
+            {/* Up/Down buttons */}
+            <div style={{display:'flex',flexDirection:'column',gap:1,flexShrink:0}}>
+              <button className="b bsm bs" style={{padding:'1px 5px',fontSize:9,opacity:idx===0?.3:1}} disabled={idx===0}
+                onClick={()=>{moveItem(sel,idx,idx-1);setMoveSel(null)}}>▲</button>
+              <button className="b bsm bs" style={{padding:'1px 5px',fontSize:9,opacity:idx===items.length-1?.3:1}} disabled={idx===items.length-1}
+                onClick={()=>{moveItem(sel,idx,idx+1);setMoveSel(null)}}>▼</button>
+            </div>
+            {/* Item (tap to select for move) */}
+            <div className={`sb ${item.tp}`} style={{flex:1,margin:0,cursor:'grab',opacity:id?.5:1,
+              boxShadow:isSel?'0 0 0 2px var(--acc)':'none'}}
+              onClick={()=>handleMoveTap(sel,idx)}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontWeight:500,fontSize:11}}>
+                  <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--t3)',marginRight:4}}>{item.time}</span>
+                  {item.t}
+                </span>
+                <span style={{fontSize:9,opacity:.7}}>{item.dur}분</span>
+              </div>
+              {item.md&&<span style={{fontSize:9,opacity:.6}}>{item.md==='input'?'📥':'📤'}</span>}
+            </div>
+            {/* Delete */}
+            <button className="b bsm bdg" style={{padding:'3px 6px',fontSize:10,flexShrink:0}}
+              onClick={()=>{if(confirm('삭제?'))deleteItem(sel,idx)}}>✕</button>
+          </div>;
+        }
+
+        // Normal mode
+        return <div key={idx} className={`sb ${item.tp}`} style={{opacity:id?.5:1}}
+          onClick={()=>{tgDone(sel,idx);if(!id&&item.sj&&item.dur){logT(sel,item.dur,item.sj);if(item.md==='input'&&item.lid)compLec(item.cr,item.lid,item.t.replace(/\[.*?\]\s*/,''))}}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontWeight:500,fontSize:11}}>
+              <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--t3)',marginRight:4}}>{item.time}</span>
+              {id&&'✓ '}{item.t}
+            </span>
+            <span style={{fontSize:9,opacity:.7}}>{item.dur}분</span>
+          </div>
+          {item.md&&<span style={{fontSize:9,opacity:.6}}>{item.md==='input'?'📥 입력':'📤 출력'}</span>}
+        </div>;
+      })}
+
+      {/* Move indicator */}
+      {moveSel&&moveSel.date===sel&&<div style={{padding:8,borderRadius:'var(--rs)',background:'rgba(124,108,240,.08)',border:'1px dashed var(--acc)',marginTop:4,fontSize:11,color:'var(--acc2)',textAlign:'center'}}>
+        📌 "{items[moveSel.idx]?.t?.slice(0,20)}..." 선택됨 → 이동할 위치를 탭하세요
+        <button className="b bsm bs" style={{marginLeft:8}} onClick={()=>setMoveSel(null)}>취소</button>
+      </div>}
+
+      <div className="c" style={{marginTop:10}}><div className="ct">📝 메모</div>
+        <textarea className="inp" rows={3} placeholder="학습 메모..." value={notes[sel]||''} onChange={e=>setNotes(p=>({...p,[sel]:e.target.value}))} style={{resize:'vertical'}}/></div>
+    </div>;
+  };
+
+  // WEEKLY
+  const renderWeekly=()=>{
+    const sw=(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+wo*7);return fmt(d)})();
+    const wd=Array.from({length:7},(_,i)=>addD(sw,i));
+    return <div className="fi">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+        <button className="b bs bsm" onClick={()=>setWo(w=>w-1)}>◀</button>
+        <div style={{fontSize:13,fontWeight:600}}>{wd[0].slice(5)} ~ {wd[6].slice(5)}</div>
+        <button className="b bs bsm" onClick={()=>setWo(w=>w+1)}>▶</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
+        {wd.map(d=>{const items=sch[d]||[];const st=items.filter(i=>i.tp!=='rest'&&i.tp!=='exercise');const dc=st.filter((_,i)=>{const gi=items.indexOf(st[i]);return done[`${d}_${gi}`]}).length;const isB=blk.includes(d);const isT=d===td();
+          return <div key={d} style={{background:isT?'rgba(124,108,240,.08)':'var(--bg)',border:`1px solid ${isT?'var(--acc)':'var(--bdr)'}`,borderRadius:'var(--rs)',padding:5,cursor:'pointer',minHeight:110}} onClick={()=>{setSel(d);setTab('daily')}}>
+            <div style={{fontSize:10,fontWeight:isT?700:500,color:isT?'var(--acc2)':'var(--t2)',textAlign:'center',marginBottom:3}}>{gdn(d)} {d.slice(8)}</div>
+            {isB?<div style={{fontSize:9,color:'var(--red)',textAlign:'center'}}>🚫</div>:
+            <div style={{fontSize:8}}>{st.slice(0,4).map((item,i)=><div key={i} style={{padding:'1px 2px',borderRadius:2,marginBottom:1,background:'rgba(124,108,240,.06)',color:'var(--t2)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{item.t.replace(/\[.*?\]\s*/,'').slice(0,9)}</div>)}
+              <div style={{textAlign:'center',marginTop:2,fontSize:9,color:dc===st.length&&st.length>0?'var(--grn)':'var(--t3)'}}>{dc}/{st.length}</div>
+            </div>}
+          </div>})}
+      </div>
+    </div>;
+  };
+
+  // MONTHLY
+  const renderMonthly=()=>{
+    const{y,m}=cm;const fd=new Date(y,m,1).getDay();const dim=new Date(y,m+1,0).getDate();
+    const days=[];for(let i=0;i<fd;i++)days.push(null);for(let i=1;i<=dim;i++)days.push(i);
+    const ms=`${y}-${String(m+1).padStart(2,'0')}`;
+    return <div className="fi">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+        <button className="b bs bsm" onClick={()=>setCm(p=>{const d=new Date(p.y,p.m-1);return{y:d.getFullYear(),m:d.getMonth()}})}>◀</button>
+        <div style={{fontSize:15,fontWeight:700}}>{y}년 {m+1}월</div>
+        <button className="b bs bsm" onClick={()=>setCm(p=>{const d=new Date(p.y,p.m+1);return{y:d.getFullYear(),m:d.getMonth()}})}>▶</button>
+      </div>
+      <div className="cg">
+        {['일','월','화','수','목','금','토'].map(d=><div key={d} className="ch">{d}</div>)}
+        {days.map((day,idx)=>{if(!day)return <div key={idx} className="cd empty"></div>;
+          const ds=`${ms}-${String(day).padStart(2,'0')}`;const isT=ds===td(),isS=ds===sel,isB=blk.includes(ds);
+          const di=sch[ds]||[];
+          return <div key={idx} className={`cd${isT?' today':''}${isS?' sel':''}${isB?' blk':''}`} onClick={()=>{setSel(ds);setTab('daily')}}>
+            <span style={{fontSize:10,fontWeight:isT?700:400}}>{day}</span>
+            <div className="cdots">
+              {di.some(i=>i.sj==='patent')&&<div className="cdot" style={{background:'var(--patent)'}}></div>}
+              {di.some(i=>i.sj==='control')&&<div className="cdot" style={{background:'var(--control)'}}></div>}
+              {di.some(i=>i.tp==='exam')&&<div className="cdot" style={{background:'var(--exam)'}}></div>}
+              {rq.some(r=>r.rd===ds&&!r.dn)&&<div className="cdot" style={{background:'var(--review)'}}></div>}
+            </div>
+          </div>})}
+      </div>
+      <div className="c" style={{marginTop:10}}><div style={{display:'flex',flexWrap:'wrap',gap:10,fontSize:10}}>
+        {[['patent','특허법'],['control','제어공학'],['exam','기출'],['review','복습']].map(([k,l])=>
+          <span key={k} style={{display:'flex',alignItems:'center',gap:3}}><div className="cdot" style={{background:`var(--${k})`,width:6,height:6}}></div>{l}</span>)}
+      </div></div>
+    </div>;
+  };
+
+  // COURSES
+  const renderCourses=()=><div className="fi">
+    {CRS.map(c=>{const completed=cp[c.k]||[];const pct=Math.round(completed.length/c.tot*100);const isO=exp[c.k];
+      return <div key={c.k} className="c">
+        <div className="exp-h" onClick={()=>setExp(p=>({...p,[c.k]:!p[c.k]}))}>
+          <div style={{display:'flex',alignItems:'center',gap:6}}>
+            <span>{c.ic}</span><span style={{fontSize:13,fontWeight:600}}>{c.nm}</span>
+            <span className="badge" style={{background:`rgba(124,108,240,.1)`,color:`var(--${c.cl})`}}>{completed.length}/{c.tot}</span>
+          </div>
+          <span className={`exp-arr${isO?' open':''}`}>▶</span>
+        </div>
+        <div className="pb" style={{marginBottom:isO?8:0}}><div className="pf" style={{width:`${pct}%`,background:`var(--${c.cl})`}}></div></div>
+        {isO&&<div style={{maxHeight:350,overflowY:'auto'}}>
+          {c.lc.map(l=>{const id=completed.includes(l.id);
+            return <div key={l.id} className="cpi">
+              <span className="num">{String(l.n).padStart(2,'0')}</span>
+              <span className="ttl">{l.t}{l.s&&<span style={{display:'block',fontSize:9,color:'var(--t3)',marginTop:1}}>{l.s}</span>}{l.p&&<span className="mb" style={{background:'var(--bg4)',color:'var(--t3)',marginLeft:3}}>{l.p}</span>}</span>
+              {id?<span className="done">✓</span>:<button className="b bsm bp" onClick={()=>compLec(c.k,l.id,`${c.sh} ${l.n}강: ${l.t}`)}>완료</button>}
+            </div>})}
+        </div>}
+      </div>})}
+  </div>;
+
+  // REVIEW
+  const renderReview=()=>{
+    const up=rq.filter(r=>!r.dn&&r.rd>=td()).sort((a,b)=>a.rd.localeCompare(b.rd));
+    return <div className="fi">
+      {overdueRev.length>0&&<div className="c" style={{borderColor:'rgba(239,107,90,.3)'}}>
+        <div className="ct" style={{color:'var(--red)'}}>⚠️ 밀린 복습 ({overdueRev.length})</div>
+        {overdueRev.slice(0,10).map(r=><div key={r.id} className="sb exam" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontWeight:500,fontSize:11}}>{r.title}</div><div style={{fontSize:9,color:'var(--t3)'}}>{r.rd} | {r.rl}</div></div>
+          <button className="b bsm bsuc" onClick={()=>compRev(r.id)}>✓</button>
+        </div>)}
+      </div>}
+      <div className="c"><div className="ct">📅 오늘 복습 ({todayRev.length})</div>
+        {todayRev.length===0?<p style={{color:'var(--t3)',fontSize:11}}>없음 🎉</p>:
+        todayRev.map(r=><div key={r.id} className="sb review" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontWeight:500,fontSize:11}}>{r.title}</div><div style={{fontSize:9,color:'var(--t3)'}}>{r.rl}</div></div>
+          <button className="b bsm bsuc" onClick={()=>compRev(r.id)}>✓</button>
+        </div>)}
+      </div>
+      <div className="c"><div className="ct">📋 예정 (20건)</div>
+        {up.slice(0,20).map(r=><div key={r.id} style={{padding:'3px 8px',borderRadius:4,marginBottom:2,background:'var(--bg)',fontSize:10,display:'flex',justifyContent:'space-between'}}>
+          <span><span style={{color:'var(--t3)',fontFamily:'JetBrains Mono',marginRight:5}}>{r.rd}</span>{r.title}</span>
+          <span className="badge" style={{background:'var(--ylw2)',color:'var(--ylw)'}}>{r.rl}</span>
+        </div>)}
+      </div>
+    </div>;
+  };
+
+  // STATS
+  const renderStats=()=>{
+    const le=Object.entries(log);const last7=Array.from({length:7},(_,i)=>addD(td(),-6+i));
+    const streak=(()=>{let s=0,d=td();while(log[d]){s++;d=addD(d,-1)}return s})();
+    const totM=(()=>{let t=0;Object.values(log).forEach(d=>Object.values(d).forEach(m=>t+=m));return t})();
+    return <div className="fi">
+      <div className="sg" style={{marginBottom:10}}>
+        <div className="si"><div className="sv" style={{color:'var(--acc2)'}}>{le.length}</div><div className="sl">학습일</div></div>
+        <div className="si"><div className="sv" style={{color:'var(--grn)'}}>{fT(totM)}</div><div className="sl">총 시간</div></div>
+        <div className="si"><div className="sv" style={{color:'var(--ylw)'}}>{streak}</div><div className="sl">연속일</div></div>
+        <div className="si"><div className="sv" style={{color:'var(--blu)'}}>{rq.filter(r=>r.dn).length}</div><div className="sl">복습완료</div></div>
+      </div>
+      <div className="c"><div className="ct">📈 최근 7일</div>
+        <div style={{display:'flex',alignItems:'flex-end',gap:3,height:100,padding:'6px 0'}}>
+          {last7.map(d=>{const dl=log[d]||{};const pm=dl.patent||0,cm2=dl.control||0,tot=pm+cm2;
+            return <div key={d} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+              <div style={{fontSize:8,color:'var(--t3)',fontFamily:'JetBrains Mono'}}>{tot>0?`${Math.round(tot/60)}h`:'-'}</div>
+              <div style={{width:'100%'}}><div style={{height:`${Math.min(pm/500*80,80)}px`,background:'var(--patent)',borderRadius:'2px 2px 0 0',minHeight:pm>0?2:0}}></div>
+                <div style={{height:`${Math.min(cm2/500*80,80)}px`,background:'var(--control)',borderRadius:'0 0 2px 2px',minHeight:cm2>0?2:0}}></div></div>
+              <div style={{fontSize:8,color:d===td()?'var(--acc2)':'var(--t3)'}}>{gdn(d)}</div>
+            </div>})}
+        </div>
+      </div>
+      <div className="c"><div className="ct">💾 데이터</div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          <button className="b bs" onClick={()=>{const data={sch,log,rq,blk,done,notes,cp,settings,dt:new Date().toISOString()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`study_${td()}.json`;a.click();URL.revokeObjectURL(url)}}>📥 내보내기</button>
+          <button className="b bs" onClick={()=>{const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const f=e.target.files[0];const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.sch)setSch(d.sch);if(d.log)setLog(d.log);if(d.rq)setRq(d.rq);if(d.blk)setBlk(d.blk);if(d.done)setDone(d.done);if(d.notes)setNotes(d.notes);if(d.cp)setCp(d.cp);if(d.settings)setSettings(d.settings);setAlarm('✅ 복원!')}catch{setAlarm('❌ 오류')}};r.readAsText(f)};input.click()}}>📤 가져오기</button>
+          <button className="b bdg" onClick={()=>{if(confirm('전체 초기화?')){localStorage.clear();location.reload()}}}>🗑 초기화</button>
+        </div>
+      </div>
+    </div>;
+  };
+
+  // SETTINGS
+  const renderSet=()=><div className="fi">
+    <div className="c"><div className="ct">⚙️ 설정</div>
+      <div style={{display:'grid',gap:10}}>
+        <div><label className="lbl">뽀모도로 집중(분)</label><input className="inp" type="number" value={settings.pomoS} onChange={e=>setSettings(s=>({...s,pomoS:+e.target.value||50}))}/></div>
+        <div><label className="lbl">뽀모도로 휴식(분)</label><input className="inp" type="number" value={settings.pomoB} onChange={e=>setSettings(s=>({...s,pomoB:+e.target.value||10}))}/></div>
+      </div>
+    </div>
+    <div className="c"><div className="ct">🚫 휴일 관리</div>
+      <div style={{display:'flex',gap:6,marginBottom:8}}><input className="inp" type="date" id="blkI" style={{flex:1}}/><button className="b bp" onClick={()=>{const v=document.getElementById('blkI').value;if(v)tgBlk(v)}}>등록</button></div>
+      {blk.sort().map(d=><div key={d} style={{display:'flex',justifyContent:'space-between',padding:'3px 8px',borderRadius:4,marginBottom:2,background:'var(--red2)',fontSize:11}}><span>{d} ({gdn(d)})</span><span style={{cursor:'pointer',color:'var(--red)'}} onClick={()=>tgBlk(d)}>✕</span></div>)}
+      {blk.length>0&&<button className="b bp" style={{marginTop:6}} onClick={regen}>🔄 재생성</button>}
+    </div>
+    <div className="c"><div className="ct">📖 수험 전략 (고득점 로드맵)</div>
+      <div style={{fontSize:11,color:'var(--t2)',lineHeight:1.7}}>
+        <p><b style={{color:'var(--red)'}}>📌 핵심 일정</b></p>
+        <p>• 원서접수: 2026.4.20(월)~4.24(금) ⚠️경력증명서 제출 필수</p>
+        <p>• 1일차 7.31(금): 특허법 09:30~11:30</p>
+        <p>• 2일차 8.1(토): 제어공학 13:30~15:30</p>
+        <p>• 합격: 특허법 60점↑, 제어공학 50점↑(P/F)</p>
+        <p style={{marginTop:6}}><b style={{color:'var(--acc2)'}}>3단계 로드맵:</b></p>
+        <p>• 1단계(2~3월): 기본이론 30강 + 단권화 + 법전훈련</p>
+        <p>• 2단계(4~6월): 판례심화 34강 + 답안작성 GS + 기출</p>
+        <p>• 3단계(7월): 압축회독(8-4-2-1) + 시뮬레이션</p>
+        <p style={{marginTop:6}}><b style={{color:'var(--ylw)'}}>주간 목표: 특허법 23.3시간+</b></p>
+        <p style={{marginTop:6}}><b style={{color:'var(--grn)'}}>답안작성 테크닉:</b></p>
+        <p>• 목차는 '논점'으로 간결하게 (2~3줄)</p>
+        <p>• 판례 키워드 '작은따옴표' 강조</p>
+        <p>• 검토/학설: 2줄 이내 방어적 작성</p>
+        <p>• 사안포섭: ①②원문자+줄바꿈 (최고배점)</p>
+        <p>• 답안 최소 16쪽 이상 작성</p>
+        <p style={{marginTop:6}}><b style={{color:'var(--cyn)'}}>제어공학 (과락방지):</b></p>
+        <p>• 인강 20강 + 기출 유형 반복숙달</p>
+        <p>• 계산기 복소수·행렬 연산 숙달</p>
+        <p style={{marginTop:6}}><b style={{color:'var(--pnk)'}}>실전 준비:</b></p>
+        <p>• GS: 최소 2명 강사 수강 (32논점, 불의타 대비)</p>
+        <p>• 필기구: 제트스트림 0.7mm 등 확정, 필속 점검</p>
+        <p>• 시뮬: 좁은 책상+법전+문제지+답안지+스톱워치</p>
+        <p>• 보론: 미국판례·소수설로 1~2점 추가 득점</p>
+      </div>
+    </div>
+    <div className="c"><div className="ct">📱 배포</div>
+      <div style={{fontSize:11,color:'var(--t2)',lineHeight:1.7}}>
+        <p>1. GitHub에 index.html 업로드 → Settings → Pages</p>
+        <p>2. 모바일: "홈 화면에 추가"로 앱 사용</p>
+        <p>3. 기기 동기화: 내보내기/가져오기 활용</p>
+      </div>
+    </div>
+  </div>;
+
+  // MODALS
+  const renderModal=()=>{
+    if(!modal)return null;const cl=()=>setModal(null);
+    if(modal==='add')return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
+      <div className="mt">📚 공부 기록</div><div style={{display:'grid',gap:10}}>
+        <div><label className="lbl">강의 선택</label><select className="inp" id="as_l"><option value="">직접 입력</option>
+          {CRS.flatMap(c=>c.lc.map(l=><option key={l.id} value={`${c.k}|${l.id}|${c.sh} ${l.n}강: ${l.t}`}>{c.sh} {l.n}강: {l.t}</option>))}</select></div>
+        <div><label className="lbl">직접 입력</label><input className="inp" id="as_t" placeholder="학습 내용"/></div>
+        <div><label className="lbl">시간(분)</label><input className="inp" type="number" id="as_d" defaultValue={60}/></div>
+        <div><label className="lbl">날짜</label><input className="inp" type="date" id="as_dt" defaultValue={td()}/></div>
+        <div style={{display:'flex',gap:6}}>
+          <button className="b bp" style={{flex:1}} onClick={()=>{
+            const lv=document.getElementById('as_l').value;const dur=+document.getElementById('as_d').value;const date=document.getElementById('as_dt').value;
+            let title=document.getElementById('as_t').value;
+            if(lv){const[ck,lid,lt]=lv.split('|');compLec(ck,lid,lt);title=lt}
+            else if(title){addStudy('patent',title,date)}
+            if(title||lv){logT(date,dur,'patent');setAlarm('✅ 기록 완료!');cl()}
+          }}>저장</button><button className="b bs" onClick={cl}>취소</button>
+        </div>
+      </div></div></div>;
+
+    if(modal==='blk')return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
+      <div className="mt">🚫 휴일 등록</div><div style={{display:'grid',gap:10}}>
+        <div><label className="lbl">시작일</label><input className="inp" type="date" id="ab_s" defaultValue={td()}/></div>
+        <div><label className="lbl">종료일</label><input className="inp" type="date" id="ab_e"/></div>
+        <div style={{display:'flex',gap:6}}>
+          <button className="b bp" style={{flex:1}} onClick={()=>{
+            const s=document.getElementById('ab_s').value,e=document.getElementById('ab_e').value||s;
+            let d=s;while(d<=e){if(!blk.includes(d))tgBlk(d);d=addD(d,1)}
+            setAlarm('🚫 등록 완료!');cl();
+          }}>등록</button><button className="b bs" onClick={cl}>취소</button>
+        </div>
+      </div></div></div>;
+
+    if(modal==='man')return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
+      <div className="mt">✏️ 스케줄 추가</div><div style={{display:'grid',gap:10}}>
+        <div><label className="lbl">날짜</label><input className="inp" type="date" id="m_d" defaultValue={sel}/></div>
+        <div><label className="lbl">시간</label><input className="inp" type="time" id="m_t" defaultValue="09:00"/></div>
+        <div><label className="lbl">유형</label><select className="inp" id="m_tp"><option value="patent">특허법</option><option value="control">제어공학</option><option value="exam">기출</option><option value="review">복습</option><option value="rest">휴식</option><option value="exercise">운동</option></select></div>
+        <div><label className="lbl">내용</label><input className="inp" id="m_ti" placeholder="내용"/></div>
+        <div><label className="lbl">시간(분)</label><input className="inp" type="number" id="m_du" defaultValue={60}/></div>
+        <div><label className="lbl">모드</label><select className="inp" id="m_mo"><option value="input">입력</option><option value="output">출력</option></select></div>
+        <div style={{display:'flex',gap:6}}>
+          <button className="b bp" style={{flex:1}} onClick={()=>{
+            const date=document.getElementById('m_d').value;
+            const it={time:document.getElementById('m_t').value,dur:+document.getElementById('m_du').value,tp:document.getElementById('m_tp').value,t:document.getElementById('m_ti').value,md:document.getElementById('m_mo').value,sj:['patent','control'].includes(document.getElementById('m_tp').value)?document.getElementById('m_tp').value:undefined};
+            if(it.t){setSch(p=>({...p,[date]:[...(p[date]||[]),it].sort((a,b)=>a.time.localeCompare(b.time))}));setAlarm('✅ 추가!');cl()}
+          }}>추가</button><button className="b bs" onClick={cl}>취소</button>
+        </div>
+      </div></div></div>;
+    return null;
+  };
+
+  const tabs2=[{id:'dash',l:'홈',i:'🏠'},{id:'daily',l:'일별',i:'📅'},{id:'weekly',l:'주별',i:'📊'},{id:'monthly',l:'월별',i:'🗓'},{id:'courses',l:'과목',i:'📚'},{id:'review',l:'복습',i:'🔔'},{id:'stats',l:'통계',i:'📈'},{id:'set',l:'설정',i:'⚙️'}];
+
+  return <div className="app">
+    {alarm&&<div className="alarm" onClick={()=>setAlarm(null)}>{alarm}</div>}
+    <header className="hdr"><div className="hdr-top">
+      <div className="logo"><div className="logo-i">변</div><div><h1>변리사 학습 플래너</h1><small>특허법(고득점) · 제어공학(P/F) · 7.31 시험</small></div></div>
+      <div className="hdr-r">
+        {(todayRev.length+overdueRev.length)>0&&<div className="bell" onClick={()=>setTab('review')}>🔔<div className="bell-n">{todayRev.length+overdueRev.length}</div></div>}
+        <div className="dday-badge">D-{gDD()} (7.31)</div>
+      </div>
+    </div></header>
+    <nav className="tabs">{tabs2.map(t=><button key={t.id} className={`tab${tab===t.id?' on':''}`} onClick={()=>{setTab(t.id);setEditMode(false);setMoveSel(null)}}>{t.i} {t.l}</button>)}</nav>
+    <main className="content">
+      {tab==='dash'&&renderDash()}{tab==='daily'&&renderDaily()}{tab==='weekly'&&renderWeekly()}{tab==='monthly'&&renderMonthly()}{tab==='courses'&&renderCourses()}{tab==='review'&&renderReview()}{tab==='stats'&&renderStats()}{tab==='set'&&renderSet()}
+    </main>
+    {renderModal()}
+  </div>;
+}
+ReactDOM.render(<App/>,document.getElementById('root'));
+</script>
+</body>
+</html>
