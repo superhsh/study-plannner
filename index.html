@@ -292,14 +292,14 @@ const LS={
   s:(k,v)=>{try{localStorage.setItem('bp3_'+k,JSON.stringify(v))}catch{}},
 };
 
-// Schedule Generator — date-based phases
+// Schedule Generator — date-based phases + life schedule
 const PH1_END='2026-03-31',PH2_END='2026-06-30';
 function gPh(date){if(date<=PH1_END)return 1;if(date<=PH2_END)return 2;return 3}
 
 function genSch(start,blocked=[],initIx={}){
   const s={};const dday=diffD(start,EXAM);const tw=Math.floor(dday/7);
   let ix={pb:initIx.pb||0,pa:initIx.pa||0,pw:initIx.pw||0,ce:initIx.ce||0};
-  let rc=0; // 회독 순환 카운터
+  let rc=0;
   const RTOP=['특허요건·진보성','침해·균등론·간접침해','심판·정정·일사부재리','소송·권리범위·PCT'];
 
   for(let w=0;w<tw&&w<60;w++){for(let d=0;d<7;d++){
@@ -307,127 +307,148 @@ function genSch(start,blocked=[],initIx={}){
     if(new Date(date)>new Date(EXAM))break;
     if(blocked.includes(date))continue;
     const dow=new Date(date).getDay(),ph=gPh(date),it=[];
+    const isSat=dow===6,isSun=dow===0,isWD=!isSat&&!isSun;
 
-    if(dow===0){ // ===== SUNDAY =====
+    // ══ 공통: 아침 ══
+    it.push({time:'06:30',dur:30,tp:'rest',t:'🌅 기상 + 준비'});
+    it.push({time:'07:00',dur:120,tp:'rest',t:'🍳 아침식사 + 육아'});
+
+    // ══ BLOCK 1: 09:00~11:15 (135분) ══
+    if(isSun){
       if(ph===1){
-        it.push({time:'09:00',dur:90,tp:'review',t:'📖 주간 단권화 정리 (형광펜 복습)',md:'output',sj:'patent'});
-        it.push({time:'10:30',dur:20,tp:'rest',t:'☕ 휴식'});
-        it.push({time:'10:50',dur:60,tp:'review',t:'⚙️ 제어공학 주간 복습',md:'output',sj:'control'});
+        it.push({time:'09:00',dur:75,tp:'review',t:'📖 주간 단권화 정리 (형광펜 복습)',md:'output',sj:'patent'});
+        it.push({time:'10:15',dur:10,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'10:25',dur:50,tp:'review',t:'⚙️ 제어공학 주간 복습',md:'output',sj:'control'});
       } else {
-        it.push({time:'09:00',dur:120,tp:'exam',t:ph===2?'📝 기출 시간제한 풀이 (2h 시뮬)':'📝 실전 모의시험 (2h 완전시뮬)',md:'output',sj:'patent'});
-        it.push({time:'11:00',dur:30,tp:'review',t:'[분석] 채점+사안포섭 분석',md:'output',sj:'patent'});
-        it.push({time:'11:30',dur:30,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'09:00',dur:120,tp:'exam',t:ph===2?'📝 기출 시간제한 풀이 (2h 시뮬)':'📝 실전 모의시험 (2h 시뮬)',md:'output',sj:'patent'});
+        it.push({time:'11:00',dur:15,tp:'review',t:'[분석] 채점+사안포섭 분석',md:'output',sj:'patent'});
       }
-      it.push({time:'12:00',dur:60,tp:'rest',t:'🍚 점심 + 휴식'});
-      it.push({time:'13:00',dur:50,tp:'exercise',t:'🏃 운동/산책'});
-      it.push({time:'13:50',dur:10,tp:'rest',t:'🚿 정리'});
-      if(ph>=2){
-        it.push({time:'14:00',dur:90,tp:'review',t:'📖 회독: 취약 파트 집중 복습',md:'output',sj:'patent'});
-        it.push({time:'15:30',dur:60,tp:'review',t:'⚙️ 제어공학 기출유형 복습',md:'output',sj:'control'});
-      } else {
-        it.push({time:'14:00',dur:60,tp:'review',t:'📖 이번 주 학습 총복습',md:'output',sj:'patent'});
-      }
-      it.push({time:'16:30',dur:30,tp:'rest',t:'🎵 자유시간'});
-    } else { // ===== WEEKDAY + SAT =====
-      it.push({time:'06:30',dur:30,tp:'rest',t:'🌅 기상 + 준비'});
-
-      // ── MORNING: Patent ──
-      if(ph===1){ // ~3월: 기본이론 완강 + 단권화 1차 완성
-        it.push({time:'07:00',dur:20,tp:'patent',t:'📕 법전 조문 찾기 훈련 (5~10초)',md:'input',sj:'patent'});
+    } else {
+      if(ph===1){
         if(ix.pb<30){
           const l=PB[ix.pb];
-          it.push({time:'07:20',dur:80,tp:'patent',t:`[입력] 기본 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pb'});
-          it.push({time:'08:40',dur:10,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:50',dur:40,tp:'output',t:`[출력] 기본 ${l.n}강 단권화 (형광펜+요약)`,md:'output',sj:'patent'});
+          it.push({time:'09:00',dur:80,tp:'patent',t:`[입력] 기본 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pb'});
+          it.push({time:'10:20',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:30',dur:45,tp:'output',t:`[출력] 기본 ${l.n}강 단권화 (형광펜+요약)`,md:'output',sj:'patent'});
         } else {
           const l=PA[Math.min(ix.pa,33)];
-          it.push({time:'07:20',dur:80,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
-          it.push({time:'08:40',dur:10,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:50',dur:40,tp:'output',t:`[출력] 판례 ${l.n}강 단권화+쟁점정리`,md:'output',sj:'patent'});
+          it.push({time:'09:00',dur:80,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
+          it.push({time:'10:20',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:30',dur:45,tp:'output',t:`[출력] 판례 ${l.n}강 단권화+쟁점정리`,md:'output',sj:'patent'});
         }
-      } else if(ph===2){ // 4~6월: 기출/GS + 회독 + 판례/답작
+      } else if(ph===2){
         const dt=dow%3;
-        if(dt===0){ // 기출/GS 풀이일
-          it.push({time:'07:00',dur:90,tp:'exam',t:'📝 기출문제/GS 풀이 (시간제한)',md:'output',sj:'patent'});
-          it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:45',dur:45,tp:'review',t:'[분석] 채점+모범답안 비교+사안포섭',md:'output',sj:'patent'});
-        } else if(dt===1){ // 판례심화 + 답안작성
+        if(dt===0){
+          it.push({time:'09:00',dur:80,tp:'exam',t:'📝 기출/GS 풀이 (시간제한)',md:'output',sj:'patent'});
+          it.push({time:'10:20',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:30',dur:45,tp:'review',t:'[분석] 채점+모범답안 비교+사안포섭',md:'output',sj:'patent'});
+        } else if(dt===1){
           if(ix.pa<34){const l=PA[ix.pa];
-            it.push({time:'07:00',dur:70,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
+            it.push({time:'09:00',dur:70,tp:'patent',t:`[입력] 판례 ${l.n}강: ${l.t}`,md:'input',sj:'patent',lid:l.id,cr:'pa'});
           } else {
-            it.push({time:'07:00',dur:70,tp:'review',t:'[회독] 판례심화 핵심쟁점 회독',md:'output',sj:'patent'});
+            it.push({time:'09:00',dur:70,tp:'review',t:'[회독] 판례심화 핵심쟁점',md:'output',sj:'patent'});
           }
-          it.push({time:'08:10',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:10',dur:10,tp:'rest',t:'☕ 휴식'});
           const lw=PW[Math.min(ix.pw,19)];
-          it.push({time:'08:20',dur:60,tp:'answer',t:`[출력] 답작: ${lw.t} (사안포섭+16쪽)`,md:'output',sj:'patent',lid:lw.id,cr:'pw'});
-        } else { // 회독일
-          it.push({time:'07:00',dur:90,tp:'review',t:`[회독] 특허법: ${RTOP[rc%4]}`,md:'output',sj:'patent'});
-          it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:45',dur:45,tp:'output',t:'[출력] 회독 핵심 키워드 기억확인',md:'output',sj:'patent'});
+          it.push({time:'10:20',dur:55,tp:'answer',t:`[출력] 답작: ${lw.t} (사안포섭)`,md:'output',sj:'patent',lid:lw.id,cr:'pw'});
+        } else {
+          it.push({time:'09:00',dur:80,tp:'review',t:`[회독] 특허법: ${RTOP[rc%4]}`,md:'output',sj:'patent'});
+          it.push({time:'10:20',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:30',dur:45,tp:'output',t:'[출력] 회독 핵심 키워드 기억확인',md:'output',sj:'patent'});
           rc++;
         }
-      } else { // 7월: 압축회독 + 시뮬레이션
+      } else {
         if(dow%2===1){
-          it.push({time:'07:00',dur:60,tp:'review',t:'[압축회독] 전범위 속독 (8-4-2-1)',md:'output',sj:'patent'});
-          it.push({time:'08:00',dur:15,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:15',dur:75,tp:'exam',t:'[시뮬] 실전 모의답안 (시간제한)',md:'output',sj:'patent'});
+          it.push({time:'09:00',dur:65,tp:'review',t:'[압축회독] 전범위 속독 (8-4-2-1)',md:'output',sj:'patent'});
+          it.push({time:'10:05',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:15',dur:60,tp:'exam',t:'[시뮬] 실전 모의답안 (시간제한)',md:'output',sj:'patent'});
         } else {
-          it.push({time:'07:00',dur:90,tp:'exam',t:'📝 기출 실전풀이 (2h 시뮬)',md:'output',sj:'patent'});
-          it.push({time:'08:30',dur:15,tp:'rest',t:'☕ 휴식'});
-          it.push({time:'08:45',dur:45,tp:'review',t:'[분석] 채점+취약점 보강',md:'output',sj:'patent'});
+          it.push({time:'09:00',dur:80,tp:'exam',t:'📝 기출 실전풀이',md:'output',sj:'patent'});
+          it.push({time:'10:20',dur:10,tp:'rest',t:'☕ 휴식'});
+          it.push({time:'10:30',dur:45,tp:'review',t:'[분석] 채점+취약점 보강',md:'output',sj:'patent'});
         }
       }
-      it.push({time:'09:35',dur:25,tp:'rest',t:'☕ 휴식 + 간식'});
+    }
 
-      // ── MID: Control ──
+    // ══ 점심 + 운동 ══
+    it.push({time:'11:15',dur:45,tp:'rest',t:'🍚 점심식사'});
+    it.push({time:'12:00',dur:50,tp:'exercise',t:'🏃 운동 (유산소/근력)'});
+    it.push({time:'12:50',dur:10,tp:'rest',t:'🚿 정리'});
+
+    // ══ BLOCK 2: 13:00~17:00 (240분) ══
+    if(isSun){
+      if(ph>=2){
+        it.push({time:'13:00',dur:60,tp:'review',t:'📖 회독: 취약파트 집중',md:'output',sj:'patent'});
+        it.push({time:'14:00',dur:10,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'14:10',dur:50,tp:'review',t:'⚙️ 제어공학 기출유형',md:'output',sj:'control'});
+      } else {
+        it.push({time:'13:00',dur:60,tp:'review',t:'📖 이번 주 학습 총복습',md:'output',sj:'patent'});
+      }
+      it.push({time:'15:00',dur:120,tp:'rest',t:'🎵 자유시간 + 가족시간'});
+    } else {
       if(ix.ce>=20){
-        it.push({time:'10:00',dur:90,tp:'control',t:'[복습] 제어공학 기출유형 반복',md:'output',sj:'control'});
+        it.push({time:'13:00',dur:75,tp:'control',t:'[복습] 제어공학 기출유형 반복',md:'output',sj:'control'});
       } else {
         const cl=CE[Math.min(ix.ce,19)];
-        it.push({time:'10:00',dur:90,tp:'control',t:`[입력] 제어 ${cl.n}강: ${cl.t}`,md:'input',sj:'control',lid:cl.id,cr:'ce'});
+        it.push({time:'13:00',dur:75,tp:'control',t:`[입력] 제어 ${cl.n}강: ${cl.t}`,md:'input',sj:'control',lid:cl.id,cr:'ce'});
       }
-      it.push({time:'11:30',dur:15,tp:'rest',t:'🧘 휴식'});
-      it.push({time:'11:45',dur:45,tp:'output',t:'[출력] 제어공학 문제풀이+계산기',md:'output',sj:'control'});
-      it.push({time:'12:30',dur:60,tp:'rest',t:'🍚 점심식사'});
-      it.push({time:'13:30',dur:30,tp:'rest',t:'😴 낮잠'});
-      it.push({time:'14:00',dur:40,tp:'exercise',t:'🏃 운동 (유산소/근력)'});
-      it.push({time:'14:40',dur:20,tp:'rest',t:'🚿 정리'});
+      it.push({time:'14:15',dur:10,tp:'rest',t:'☕ 휴식'});
+      it.push({time:'14:25',dur:35,tp:'output',t:'[출력] 제어공학 문제풀이+계산기',md:'output',sj:'control'});
+      it.push({time:'15:00',dur:10,tp:'rest',t:'☕ 휴식'});
+      it.push({time:'15:10',dur:70,tp:'review',t:'[복습] 특허법 간격반복',md:'output',sj:'patent'});
+      it.push({time:'16:20',dur:10,tp:'rest',t:'☕ 휴식'});
+      it.push({time:'16:30',dur:30,tp:'review',t:'[복습] 제어공학 간격반복',md:'output',sj:'control'});
+    }
 
-      // ── AFTERNOON: Review ──
-      it.push({time:'15:00',dur:80,tp:'review',t:'[복습] 특허법 간격반복',md:'output',sj:'patent'});
-      it.push({time:'16:20',dur:20,tp:'rest',t:'☕ 휴식'});
-      it.push({time:'16:40',dur:80,tp:'review',t:'[복습] 제어공학 간격반복',md:'output',sj:'control'});
-      it.push({time:'18:00',dur:60,tp:'rest',t:'🍚 저녁식사'});
-      it.push({time:'19:00',dur:30,tp:'rest',t:'🎵 자유시간'});
-
-      // ── EVENING ──
-      if(dow===6){
-        it.push({time:'19:30',dur:120,tp:'exam',t:'📝 토요 모의시험 (2h 실전시뮬)',md:'output',sj:'patent'});
-        it.push({time:'21:30',dur:30,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output'});
-      } else if(ph===1){
-        it.push({time:'19:30',dur:60,tp:'review',t:'[정리] 단권화 최종정리+내일준비',md:'output',sj:'patent'});
+    // ══ 저녁 (평일: 육아 / 토: 모의시험 / 일: 가족) ══
+    if(isWD){
+      it.push({time:'17:00',dur:180,tp:'rest',t:'🍚 저녁식사 + 육아'});
+      // Block 3: 20:00~22:30 (150분)
+      if(ph===1){
+        it.push({time:'20:00',dur:50,tp:'patent',t:'📕 법전 조문 찾기 훈련 + 복습',md:'input',sj:'patent'});
+        it.push({time:'20:50',dur:10,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'21:00',dur:50,tp:'review',t:'[정리] 단권화 최종정리+내일준비',md:'output',sj:'patent'});
+        it.push({time:'21:50',dur:40,tp:'rest',t:'🎵 자유시간'});
       } else if(ph===2){
-        it.push({time:'19:30',dur:80,tp:'exam',t:`📝 기출분석 (${dow%2===0?'특허법':'제어공학'})`,md:'output',sj:dow%2===0?'patent':'control'});
-        it.push({time:'20:50',dur:10,tp:'rest',t:'☕'});
-        it.push({time:'21:00',dur:30,tp:'review',t:'[정리] 오늘 총정리+회독메모',md:'output'});
+        it.push({time:'20:00',dur:70,tp:'exam',t:`📝 기출분석 (${dow%2===0?'특허법':'제어공학'})`,md:'output',sj:dow%2===0?'patent':'control'});
+        it.push({time:'21:10',dur:10,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'21:20',dur:40,tp:'review',t:'[정리] 오늘 총정리+회독메모',md:'output',sj:'patent'});
+        it.push({time:'22:00',dur:30,tp:'rest',t:'🎵 자유시간'});
       } else {
-        it.push({time:'19:30',dur:80,tp:'review',t:'[압축회독] 취약파트 집중보강',md:'output',sj:'patent'});
-        it.push({time:'20:50',dur:10,tp:'rest',t:'☕'});
-        it.push({time:'21:00',dur:30,tp:'review',t:'[정리] 내일 시뮬 범위 확인',md:'output'});
+        it.push({time:'20:00',dur:70,tp:'review',t:'[압축회독] 취약파트 집중보강',md:'output',sj:'patent'});
+        it.push({time:'21:10',dur:10,tp:'rest',t:'☕ 휴식'});
+        it.push({time:'21:20',dur:40,tp:'review',t:'[정리] 내일 시뮬 범위 확인',md:'output',sj:'patent'});
+        it.push({time:'22:00',dur:30,tp:'rest',t:'🎵 자유시간'});
       }
-      it.push({time:'22:00',dur:30,tp:'rest',t:'🌙 취침준비'});
+    } else if(isSat){
+      it.push({time:'17:00',dur:10,tp:'rest',t:'☕ 휴식'});
+      it.push({time:'17:10',dur:120,tp:'exam',t:'📝 토요 모의시험 (2h 실전시뮬)',md:'output',sj:'patent'});
+      it.push({time:'19:10',dur:20,tp:'review',t:'[정리] 채점+사안포섭 분석',md:'output'});
+      it.push({time:'19:30',dur:60,tp:'rest',t:'🍚 저녁식사'});
+      it.push({time:'20:30',dur:60,tp:'review',t:'[정리] 약점분석+내일준비',md:'output',sj:'patent'});
+      it.push({time:'21:30',dur:60,tp:'rest',t:'🎵 자유시간'});
+    } else {
+      it.push({time:'17:00',dur:180,tp:'rest',t:'🍚 저녁식사 + 가족시간'});
+      it.push({time:'20:00',dur:60,tp:'review',t:'[정리] 다음 주 계획 + 가벼운 복습',md:'output',sj:'patent'});
+      it.push({time:'21:00',dur:90,tp:'rest',t:'🎵 자유시간'});
+    }
 
-      // ── Advance indices ──
-      if(dow===1||dow===3||dow===5){
+    // ══ 취침 ══
+    it.push({time:'22:30',dur:30,tp:'rest',t:'🌙 취침준비'});
+
+    // ══ Advance indices ══
+    if(!isSun){
+      if(dow===1||dow===3||dow===5||isSat){
         if(ph===1){if(ix.pb<30)ix.pb++;else ix.pa=Math.min(ix.pa+1,34)}
         else if(ph===2&&dow%3===1){ix.pa=Math.min(ix.pa+1,34);if(dow>=3)ix.pw=Math.min(ix.pw+1,20)}
       }
-      if(dow===2||dow===4)ix.ce=Math.min(ix.ce+1,20);
+      if(dow===2||dow===4||(isSat&&ix.ce<20))ix.ce=Math.min(ix.ce+1,20);
     }
     s[date]=it;
   }}
   return s;
 }
+
 
 const TIPS=[
   '📕 법전 훈련: 매일 아침 조문 찾기 연습! 5~10초 내에 위치를 찾는 감각이 시험장에서 시간을 벌어줍니다.',
@@ -470,7 +491,8 @@ function App(){
   const[settings,setSettings]=useState(()=>LS.g('set',{pomoS:50,pomoB:10}));
   const[exp,setExp]=useState({});
   const[editMode,setEditMode]=useState(false);
-  const[moveSel,setMoveSel]=useState(null); // {date,idx} of selected item for move
+  const[moveSel,setMoveSel]=useState(null);
+  const[editItem,setEditItem]=useState(null); // {date,idx,item} for editing
 
   useEffect(()=>{LS.s('sch',sch)},[sch]);
   useEffect(()=>{LS.s('log',log)},[log]);
@@ -557,6 +579,25 @@ function App(){
       return{...p,[date]:items};
     });
   },[]);
+
+  const updateItem=useCallback((date,idx,newItem)=>{
+    setSch(p=>{
+      const items=[...(p[date]||[])];
+      items[idx]={...items[idx],...newItem};
+      items.sort((a,b)=>a.time.localeCompare(b.time));
+      return{...p,[date]:items};
+    });
+  },[]);
+
+  const addItem=useCallback((date,item)=>{
+    setSch(p=>{
+      const items=[...(p[date]||[]),item];
+      items.sort((a,b)=>a.time.localeCompare(b.time));
+      return{...p,[date]:items};
+    });
+    // Log time
+    if(item.sj&&item.dur)logT(date,item.dur,item.sj);
+  },[logT]);
 
   const handleMoveTap=useCallback((date,idx)=>{
     if(!moveSel){
@@ -689,11 +730,12 @@ function App(){
       <div className="c"><div className="ct">📋 오늘의 계획</div>
         {ti.length===0?<p style={{color:'var(--t3)',fontSize:12}}>스케줄 없음</p>:
         ti.map((item,idx)=>{const id=done[`${td()}_${idx}`];
+          const et=(()=>{const[h,m]=item.time.split(':').map(Number);const em=h*60+m+item.dur;return`${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`})();
           return <label key={idx} className="chk"><input type="checkbox" checked={!!id} onChange={()=>{
             tgDone(td(),idx);if(!id&&item.sj&&item.dur){logT(td(),item.dur,item.sj);
               if(item.md==='input'&&item.lid)compLec(item.cr,item.lid,item.t.replace(/\[.*?\]\s*/,''))}
           }}/><span className="chk-b"></span>
-            <span className="chk-t"><span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--t3)',marginRight:5}}>{item.time}</span>{item.t}
+            <span className="chk-t"><span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--t3)',marginRight:5}}>{item.time}~{et}</span>{item.t}
               <span className="badge" style={{marginLeft:3,background:'var(--bg)',color:'var(--t3)',fontSize:8}}>{item.dur}분</span>
               {item.md&&<span className="mb" style={{marginLeft:2,background:item.md==='input'?'var(--blu2)':'var(--pnk2)',color:item.md==='input'?'var(--blu)':'var(--pnk)'}}>{item.md==='input'?'입력':'출력'}</span>}
             </span></label>
@@ -702,9 +744,9 @@ function App(){
       <div className="c"><div className="ct">⚡ 빠른 실행</div>
         <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
           <button className="b bp" onClick={()=>setModal('add')}>+ 공부기록</button>
+          <button className="b bp" onClick={()=>setModal({type:'addSch',date:td()})}>+ 스케줄추가</button>
           <button className="b bs" onClick={()=>setModal('blk')}>🚫 휴일</button>
           <button className="b bs" onClick={regen}>🔄 재생성</button>
-          <button className="b bs" onClick={()=>setModal('man')}>✏️ 추가</button>
         </div>
       </div>
       <div className="c" style={{background:'linear-gradient(135deg,rgba(124,108,240,.06),rgba(64,216,208,.06))'}}><div style={{fontSize:12,color:'var(--t2)',lineHeight:1.6}}>{TIPS[new Date().getDate()%TIPS.length]}</div></div>
@@ -716,77 +758,69 @@ function App(){
     const items=sch[sel]||[];
     return <div className="fi">
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-        <button className="b bs bsm" onClick={()=>{setSel(addD(sel,-1));setMoveSel(null)}}>◀</button>
+        <button className="b bs bsm" onClick={()=>{setSel(addD(sel,-1));setMoveSel(null);setEditMode(false)}}>◀</button>
         <div style={{textAlign:'center'}}><div style={{fontSize:14,fontWeight:600}}>{sel} ({gdn(sel)})</div><div style={{fontSize:10,color:'var(--t3)'}}>{sel===td()?'📌 오늘':`D${diffD(td(),sel)>=0?'+':''}${diffD(td(),sel)}`}</div></div>
-        <button className="b bs bsm" onClick={()=>{setSel(addD(sel,1));setMoveSel(null)}}>▶</button>
+        <button className="b bs bsm" onClick={()=>{setSel(addD(sel,1));setMoveSel(null);setEditMode(false)}}>▶</button>
       </div>
 
       {blk.includes(sel)&&<div className="c" style={{background:'var(--red2)'}}><span style={{fontSize:12,color:'var(--red)',fontWeight:600}}>🚫 휴일</span> <button className="b bsm bs" style={{marginLeft:8}} onClick={()=>tgBlk(sel)}>해제</button></div>}
 
-      {/* Edit mode toggle */}
+      {/* Action bar */}
       <div style={{display:'flex',gap:6,marginBottom:8}}>
+        <button className="b bp bsm" onClick={()=>setModal({type:'addSch',date:sel})}>+ 스케줄 추가</button>
         <button className={`b ${editMode?'bp':'bs'} bsm`} onClick={()=>{setEditMode(!editMode);setMoveSel(null)}}>
-          {editMode?'✓ 편집완료':'✏️ 스케줄 편집'}
+          {editMode?'✓ 편집완료':'🔀 순서변경'}
         </button>
-        {editMode&&<div style={{fontSize:10,color:'var(--t2)',display:'flex',alignItems:'center'}}>항목을 탭하여 선택 → 이동할 위치 탭</div>}
       </div>
 
-      {items.length===0?<div className="c"><p style={{color:'var(--t3)',fontSize:12}}>스케줄 없음</p></div>:
+      {items.length===0?<div className="c"><p style={{color:'var(--t3)',fontSize:12}}>스케줄 없음 — 위 "+" 버튼으로 추가하세요</p></div>:
       items.map((item,idx)=>{
-        const id=done[`${sel}_${idx}`];
-        const isSel=moveSel&&moveSel.date===sel&&moveSel.idx===idx;
+        const dk=`${sel}_${idx}`;
+        const isDone=done[dk];
+        const isSel=editMode&&moveSel&&moveSel.date===sel&&moveSel.idx===idx;
+        const endTime=(()=>{const[h,m]=item.time.split(':').map(Number);const em=h*60+m+item.dur;return`${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`})();
 
-        if(editMode){
-          return <div key={idx} style={{
-            display:'flex',alignItems:'center',gap:4,marginBottom:3,
-            background:isSel?'rgba(124,108,240,.15)':'transparent',
-            borderRadius:'var(--rs)',padding:isSel?'2px 4px':'2px 4px',
-            border:isSel?'1px solid var(--acc)':'1px solid transparent',
-            transition:'.12s'
-          }}>
-            {/* Up/Down buttons */}
-            <div style={{display:'flex',flexDirection:'column',gap:1,flexShrink:0}}>
-              <button className="b bsm bs" style={{padding:'1px 5px',fontSize:9,opacity:idx===0?.3:1}} disabled={idx===0}
-                onClick={()=>{moveItem(sel,idx,idx-1);setMoveSel(null)}}>▲</button>
-              <button className="b bsm bs" style={{padding:'1px 5px',fontSize:9,opacity:idx===items.length-1?.3:1}} disabled={idx===items.length-1}
-                onClick={()=>{moveItem(sel,idx,idx+1);setMoveSel(null)}}>▼</button>
-            </div>
-            {/* Item (tap to select for move) */}
-            <div className={`sb ${item.tp}`} style={{flex:1,margin:0,cursor:'grab',opacity:id?.5:1,
-              boxShadow:isSel?'0 0 0 2px var(--acc)':'none'}}
-              onClick={()=>handleMoveTap(sel,idx)}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span style={{fontWeight:500,fontSize:11}}>
-                  <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--t3)',marginRight:4}}>{item.time}</span>
-                  {item.t}
-                </span>
-                <span style={{fontSize:9,opacity:.7}}>{item.dur}분</span>
-              </div>
-              {item.md&&<span style={{fontSize:9,opacity:.6}}>{item.md==='input'?'📥':'📤'}</span>}
-            </div>
-            {/* Delete */}
-            <button className="b bsm bdg" style={{padding:'3px 6px',fontSize:10,flexShrink:0}}
-              onClick={()=>{if(confirm('삭제?'))deleteItem(sel,idx)}}>✕</button>
-          </div>;
-        }
+        return <div key={idx} style={{display:'flex',alignItems:'stretch',gap:4,marginBottom:3}}>
+          {/* Edit mode: reorder controls */}
+          {editMode&&<div style={{display:'flex',flexDirection:'column',gap:1,justifyContent:'center',flexShrink:0}}>
+            <button className="b bsm bs" style={{padding:'1px 5px',fontSize:9,opacity:idx===0?.3:1}} disabled={idx===0}
+              onClick={()=>{moveItem(sel,idx,idx-1);setMoveSel(null)}}>▲</button>
+            <button className="b bsm bs" style={{padding:'1px 5px',fontSize:9,opacity:idx===items.length-1?.3:1}} disabled={idx===items.length-1}
+              onClick={()=>{moveItem(sel,idx,idx+1);setMoveSel(null)}}>▼</button>
+          </div>}
 
-        // Normal mode
-        return <div key={idx} className={`sb ${item.tp}`} style={{opacity:id?.5:1}}
-          onClick={()=>{tgDone(sel,idx);if(!id&&item.sj&&item.dur){logT(sel,item.dur,item.sj);if(item.md==='input'&&item.lid)compLec(item.cr,item.lid,item.t.replace(/\[.*?\]\s*/,''))}}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <span style={{fontWeight:500,fontSize:11}}>
-              <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--t3)',marginRight:4}}>{item.time}</span>
-              {id&&'✓ '}{item.t}
-            </span>
-            <span style={{fontSize:9,opacity:.7}}>{item.dur}분</span>
+          {/* Main item */}
+          <div className={`sb ${item.tp}`} style={{flex:1,margin:0,opacity:isDone?.5:1,
+            border:isSel?'1.5px solid var(--acc)':'none'}}
+            onClick={editMode?()=>handleMoveTap(sel,idx):()=>{
+              tgDone(sel,idx);
+              if(!isDone&&item.sj&&item.dur){logT(sel,item.dur,item.sj);if(item.md==='input'&&item.lid)compLec(item.cr,item.lid,item.t.replace(/\[.*?\]\s*/,''))}
+            }}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontWeight:500,fontSize:11}}>
+                <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--t3)',marginRight:4}}>{item.time}~{endTime}</span>
+                {isDone&&'✓ '}{item.t}
+              </span>
+              <span style={{fontSize:9,opacity:.7}}>{item.dur}분</span>
+            </div>
+            {item.md&&<span style={{fontSize:9,opacity:.6}}>{item.md==='input'?'📥 입력':'📤 출력'}</span>}
           </div>
-          {item.md&&<span style={{fontSize:9,opacity:.6}}>{item.md==='input'?'📥 입력':'📤 출력'}</span>}
+
+          {/* Per-item edit/delete buttons (always visible) */}
+          {!editMode&&<div style={{display:'flex',flexDirection:'column',gap:2,justifyContent:'center',flexShrink:0}}>
+            <button className="b bsm bs" style={{padding:'2px 6px',fontSize:9}}
+              onClick={(e)=>{e.stopPropagation();setModal({type:'editSch',date:sel,idx,item})}}>✏️</button>
+            <button className="b bsm bdg" style={{padding:'2px 6px',fontSize:9}}
+              onClick={(e)=>{e.stopPropagation();if(confirm('이 항목을 삭제하시겠습니까?'))deleteItem(sel,idx)}}>✕</button>
+          </div>}
+          {editMode&&<button className="b bsm bdg" style={{padding:'3px 6px',fontSize:10,flexShrink:0,alignSelf:'center'}}
+            onClick={()=>{if(confirm('삭제?'))deleteItem(sel,idx)}}>✕</button>}
         </div>;
       })}
 
       {/* Move indicator */}
-      {moveSel&&moveSel.date===sel&&<div style={{padding:8,borderRadius:'var(--rs)',background:'rgba(124,108,240,.08)',border:'1px dashed var(--acc)',marginTop:4,fontSize:11,color:'var(--acc2)',textAlign:'center'}}>
-        📌 "{items[moveSel.idx]?.t?.slice(0,20)}..." 선택됨 → 이동할 위치를 탭하세요
+      {editMode&&moveSel&&moveSel.date===sel&&<div style={{padding:8,borderRadius:'var(--rs)',background:'rgba(124,108,240,.08)',border:'1px dashed var(--acc)',marginTop:4,fontSize:11,color:'var(--acc2)',textAlign:'center'}}>
+        📌 선택됨 → 이동할 위치를 탭하세요
         <button className="b bsm bs" style={{marginLeft:8}} onClick={()=>setMoveSel(null)}>취소</button>
       </div>}
 
@@ -987,20 +1021,125 @@ function App(){
   // MODALS
   const renderModal=()=>{
     if(!modal)return null;const cl=()=>setModal(null);
+
+    // Helper: calc duration from time range
+    const calcDur=(from,to)=>{
+      const[fh,fm]=from.split(':').map(Number),[th,tm]=to.split(':').map(Number);
+      let d=(th*60+tm)-(fh*60+fm);if(d<=0)d+=24*60;return d;
+    };
+    const endFromDur=(from,dur)=>{
+      const[fh,fm]=from.split(':').map(Number);const em=fh*60+fm+dur;
+      return`${String(Math.floor(em/60)%24).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
+    };
+
+    // ===== ADD SCHEDULE (from daily view or dashboard) =====
+    if(modal.type==='addSch')return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
+      <div className="mt">📋 스케줄 추가</div><div style={{display:'grid',gap:10}}>
+        <div><label className="lbl">날짜</label><input className="inp" type="date" id="ns_d" defaultValue={modal.date||sel}/></div>
+        <div style={{display:'flex',gap:6}}>
+          <div style={{flex:1}}><label className="lbl">시작 시각</label><input className="inp" type="time" id="ns_sf" defaultValue="09:00"/></div>
+          <div style={{flex:1}}><label className="lbl">종료 시각</label><input className="inp" type="time" id="ns_st" defaultValue="10:00"/></div>
+        </div>
+        <div><label className="lbl">유형</label><select className="inp" id="ns_tp">
+          <option value="patent">📕 특허법</option><option value="control">⚙️ 제어공학</option>
+          <option value="exam">📝 기출/GS</option><option value="review">🔄 복습/회독</option>
+          <option value="answer">✍️ 답안작성</option><option value="rest">☕ 휴식</option><option value="exercise">🏃 운동</option>
+        </select></div>
+        <div><label className="lbl">내용</label><input className="inp" id="ns_ti" placeholder="학습 내용을 입력하세요"/></div>
+        <div><label className="lbl">모드</label><select className="inp" id="ns_mo">
+          <option value="">해당없음</option><option value="input">📥 입력</option><option value="output">📤 출력</option>
+        </select></div>
+        <div><label className="lbl">강의 연결 (선택)</label><select className="inp" id="ns_lec"><option value="">없음</option>
+          {CRS.flatMap(c=>c.lc.map(l=><option key={l.id} value={`${c.k}|${l.id}|${c.sh} ${l.n}강: ${l.t}`}>{c.sh} {l.n}강: {l.t}</option>))}</select></div>
+        <div style={{display:'flex',gap:6}}>
+          <button className="b bp" style={{flex:1}} onClick={()=>{
+            const date=document.getElementById('ns_d').value;
+            const from=document.getElementById('ns_sf').value;
+            const to=document.getElementById('ns_st').value;
+            const dur=calcDur(from,to);
+            const tp=document.getElementById('ns_tp').value;
+            const title=document.getElementById('ns_ti').value;
+            const md=document.getElementById('ns_mo').value||undefined;
+            const lv=document.getElementById('ns_lec').value;
+            if(!title&&!lv){setAlarm('⚠️ 내용을 입력하세요');return}
+            const sj=['patent','answer'].includes(tp)?'patent':tp==='control'?'control':['exam','review'].includes(tp)?'patent':undefined;
+            const item={time:from,dur,tp,t:lv?lv.split('|')[2]:title,md,sj};
+            if(lv){const[ck,lid,lt]=lv.split('|');item.lid=lid;item.cr=ck;item.t=lt;compLec(ck,lid,lt)}
+            addItem(date,item);
+            setAlarm(`✅ 추가 완료! (${from}~${to}, ${dur}분)`);cl();
+          }}>추가</button><button className="b bs" onClick={cl}>취소</button>
+        </div>
+      </div></div></div>;
+
+    // ===== EDIT SCHEDULE ITEM =====
+    if(modal.type==='editSch'){
+      const{date,idx,item}=modal;
+      const defEnd=endFromDur(item.time,item.dur);
+      return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
+        <div className="mt">✏️ 스케줄 수정</div><div style={{display:'grid',gap:10}}>
+          <div style={{display:'flex',gap:6}}>
+            <div style={{flex:1}}><label className="lbl">시작 시각</label><input className="inp" type="time" id="es_sf" defaultValue={item.time}/></div>
+            <div style={{flex:1}}><label className="lbl">종료 시각</label><input className="inp" type="time" id="es_st" defaultValue={defEnd}/></div>
+          </div>
+          <div><label className="lbl">유형</label><select className="inp" id="es_tp" defaultValue={item.tp}>
+            <option value="patent">📕 특허법</option><option value="control">⚙️ 제어공학</option>
+            <option value="exam">📝 기출/GS</option><option value="review">🔄 복습/회독</option>
+            <option value="answer">✍️ 답안작성</option><option value="rest">☕ 휴식</option><option value="exercise">🏃 운동</option>
+          </select></div>
+          <div><label className="lbl">내용</label><input className="inp" id="es_ti" defaultValue={item.t}/></div>
+          <div><label className="lbl">모드</label><select className="inp" id="es_mo" defaultValue={item.md||''}>
+            <option value="">해당없음</option><option value="input">📥 입력</option><option value="output">📤 출력</option>
+          </select></div>
+          <div style={{display:'flex',gap:6}}>
+            <button className="b bp" style={{flex:1}} onClick={()=>{
+              const from=document.getElementById('es_sf').value;
+              const to=document.getElementById('es_st').value;
+              const dur=calcDur(from,to);
+              const tp=document.getElementById('es_tp').value;
+              const title=document.getElementById('es_ti').value;
+              const md=document.getElementById('es_mo').value||undefined;
+              if(!title){setAlarm('⚠️ 내용을 입력하세요');return}
+              const sj=['patent','answer'].includes(tp)?'patent':tp==='control'?'control':['exam','review'].includes(tp)?'patent':undefined;
+              updateItem(date,idx,{time:from,dur,tp,t:title,md,sj});
+              setAlarm(`✅ 수정 완료! (${from}~${to}, ${dur}분)`);cl();
+            }}>저장</button>
+            <button className="b bdg" onClick={()=>{if(confirm('삭제하시겠습니까?')){deleteItem(date,idx);cl()}}}>삭제</button>
+            <button className="b bs" onClick={cl}>취소</button>
+          </div>
+        </div></div></div>;
+    }
+
+    // ===== 공부기록 (시간대 입력 + 강의 연결) =====
     if(modal==='add')return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
-      <div className="mt">📚 공부 기록</div><div style={{display:'grid',gap:10}}>
+      <div className="mt">📚 공부 기록 추가</div><div style={{display:'grid',gap:10}}>
         <div><label className="lbl">강의 선택</label><select className="inp" id="as_l"><option value="">직접 입력</option>
           {CRS.flatMap(c=>c.lc.map(l=><option key={l.id} value={`${c.k}|${l.id}|${c.sh} ${l.n}강: ${l.t}`}>{c.sh} {l.n}강: {l.t}</option>))}</select></div>
         <div><label className="lbl">직접 입력</label><input className="inp" id="as_t" placeholder="학습 내용"/></div>
-        <div><label className="lbl">시간(분)</label><input className="inp" type="number" id="as_d" defaultValue={60}/></div>
+        <div style={{display:'flex',gap:6}}>
+          <div style={{flex:1}}><label className="lbl">시작 시각</label><input className="inp" type="time" id="as_sf" defaultValue="07:00"/></div>
+          <div style={{flex:1}}><label className="lbl">종료 시각</label><input className="inp" type="time" id="as_st" defaultValue="08:30"/></div>
+        </div>
+        <div><label className="lbl">과목</label><select className="inp" id="as_sj">
+          <option value="patent">특허법</option><option value="control">제어공학</option>
+        </select></div>
         <div><label className="lbl">날짜</label><input className="inp" type="date" id="as_dt" defaultValue={td()}/></div>
         <div style={{display:'flex',gap:6}}>
           <button className="b bp" style={{flex:1}} onClick={()=>{
-            const lv=document.getElementById('as_l').value;const dur=+document.getElementById('as_d').value;const date=document.getElementById('as_dt').value;
+            const lv=document.getElementById('as_l').value;
+            const from=document.getElementById('as_sf').value;
+            const to=document.getElementById('as_st').value;
+            const dur=calcDur(from,to);
+            const date=document.getElementById('as_dt').value;
+            const sj=document.getElementById('as_sj').value;
             let title=document.getElementById('as_t').value;
             if(lv){const[ck,lid,lt]=lv.split('|');compLec(ck,lid,lt);title=lt}
-            else if(title){addStudy('patent',title,date)}
-            if(title||lv){logT(date,dur,'patent');setAlarm('✅ 기록 완료!');cl()}
+            else if(title){addStudy(sj,title,date)}
+            if(title||lv){
+              // Add to schedule
+              const tp=sj==='patent'?'patent':'control';
+              addItem(date,{time:from,dur,tp,t:title||(lv?lv.split('|')[2]:'공부'),md:'input',sj});
+              setAlarm(`✅ 기록 완료! (${from}~${to}, ${dur}분)`);cl();
+            } else {setAlarm('⚠️ 내용을 입력하세요')}
           }}>저장</button><button className="b bs" onClick={cl}>취소</button>
         </div>
       </div></div></div>;
@@ -1018,22 +1157,6 @@ function App(){
         </div>
       </div></div></div>;
 
-    if(modal==='man')return <div className="mo" onClick={cl}><div className="md" onClick={e=>e.stopPropagation()}>
-      <div className="mt">✏️ 스케줄 추가</div><div style={{display:'grid',gap:10}}>
-        <div><label className="lbl">날짜</label><input className="inp" type="date" id="m_d" defaultValue={sel}/></div>
-        <div><label className="lbl">시간</label><input className="inp" type="time" id="m_t" defaultValue="09:00"/></div>
-        <div><label className="lbl">유형</label><select className="inp" id="m_tp"><option value="patent">특허법</option><option value="control">제어공학</option><option value="exam">기출</option><option value="review">복습</option><option value="rest">휴식</option><option value="exercise">운동</option></select></div>
-        <div><label className="lbl">내용</label><input className="inp" id="m_ti" placeholder="내용"/></div>
-        <div><label className="lbl">시간(분)</label><input className="inp" type="number" id="m_du" defaultValue={60}/></div>
-        <div><label className="lbl">모드</label><select className="inp" id="m_mo"><option value="input">입력</option><option value="output">출력</option></select></div>
-        <div style={{display:'flex',gap:6}}>
-          <button className="b bp" style={{flex:1}} onClick={()=>{
-            const date=document.getElementById('m_d').value;
-            const it={time:document.getElementById('m_t').value,dur:+document.getElementById('m_du').value,tp:document.getElementById('m_tp').value,t:document.getElementById('m_ti').value,md:document.getElementById('m_mo').value,sj:['patent','control'].includes(document.getElementById('m_tp').value)?document.getElementById('m_tp').value:undefined};
-            if(it.t){setSch(p=>({...p,[date]:[...(p[date]||[]),it].sort((a,b)=>a.time.localeCompare(b.time))}));setAlarm('✅ 추가!');cl()}
-          }}>추가</button><button className="b bs" onClick={cl}>취소</button>
-        </div>
-      </div></div></div>;
     return null;
   };
 
